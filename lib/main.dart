@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/homepage.dart';
 import 'package:path_provider/path_provider.dart';
 
