@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:iris_app/models/user_model.dart';
 
 import 'hostelchange.dart';
 import 'hostelregisteration.dart';
@@ -11,12 +13,43 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final String name = "John Doe";
-  final String email = "john.doe@example.com";
-  final String rollNumber = "NITK123456";
+  String name = "";
+  String email = "";
+  String rollNumber = "";
   String hostel = ""; // Empty or null if no hostel registration yet
+
+  @override
+  void dispose() {
+    Hive.close();
+    super.dispose();
+  }
+
+  void saveUserData(UserModel user) async {
+    var userBox = Hive.box('userBox');
+    userBox.put('user', user);
+  }
+
+  void loadUserData() {
+    var userBox = Hive.box('userBox');
+    UserModel? user = userBox.get('user');
+
+    if (user != null) {
+      // Display or use user information
+      setState(() {
+        name = user.name;
+        email = user.email;
+        rollNumber = user.rollNumber;
+        hostel = user.currentHostel as String;
+      });
+      print(user.name);
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    saveUserData(UserModel(name: "Abhijith", email: "abhijithsogal@gmail.com", rollNumber: "1234t", currentHostel: ""));
+    loadUserData();
     return Scaffold(
       appBar: AppBar(
         title: const Text("User Dashboard"),

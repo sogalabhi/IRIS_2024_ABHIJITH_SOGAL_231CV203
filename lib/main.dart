@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/homepage.dart';
-import 'package:iris_app/pages/login.dart';
+import 'package:path_provider/path_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  // Initialize Hive
+  final directory = await getApplicationDocumentsDirectory();
+  await Hive.initFlutter(directory.path);
+
+// Open the box for user data
+  await Hive.openBox('userBox');
+
+
   runApp(const MyApp());
 }
 

@@ -54,17 +54,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   // Handle login logic here
                 },
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 child: const Padding(
                   padding:
                       EdgeInsets.symmetric(horizontal: 80, vertical: 15),
                   child: Text(
                     'Login',
                     style: TextStyle(fontSize: 18),
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),

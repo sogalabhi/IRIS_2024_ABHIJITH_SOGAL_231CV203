@@ -9,8 +9,15 @@ class HostelChangePage extends StatefulWidget {
 }
 
 class _HostelChangePageState extends State<HostelChangePage> {
-  final _hostelOptions = ["Hostel 1", "Hostel 2", "Hostel 3", "Hostel 4"];
+  final _hostelOptions = [
+    {"name": "Hostel 1", "availableRooms": 10, "layout": "Layout A"},
+    {"name": "Hostel 2", "availableRooms": 5, "layout": "Layout B"},
+    {"name": "Hostel 3", "availableRooms": 3, "layout": "Layout C"},
+    {"name": "Hostel 4", "availableRooms": 8, "layout": "Layout D"},
+  ];
+
   String? _newHostel;
+  Map<String, dynamic>? _hostelDetails;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,20 +43,36 @@ class _HostelChangePageState extends State<HostelChangePage> {
               value: _newHostel,
               hint: const Text("Select New Hostel"),
               items: _hostelOptions
-                  .where((hostel) => hostel != widget.currentHostel)
+                  .where((hostel) => hostel["name"] != widget.currentHostel)
                   .map((hostel) {
                 return DropdownMenuItem<String>(
-                  value: hostel,
-                  child: Text(hostel),
+                  value: hostel['name'] as String,
+                  child: Text(hostel['name'] as String),
                 );
               }).toList(),
               onChanged: (value) {
                 setState(() {
                   _newHostel = value;
+                  _hostelDetails = _hostelOptions
+                      .firstWhere((hostel) => hostel["name"] == _newHostel);
                 });
               },
             ),
             const SizedBox(height: 30),
+            if (_hostelDetails != null) ...[
+              const Text(
+                "Hostel Details:",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text("Available Rooms: ${_hostelDetails!["availableRooms"]}"),
+              Text("Layout: ${_hostelDetails!["layout"]}"),
+              const SizedBox(height: 30),
+            ],
 
             // Submit button
             ElevatedButton(
@@ -60,7 +83,8 @@ class _HostelChangePageState extends State<HostelChangePage> {
                 } else {
                   // Show error if no new hostel selected
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select a new hostel!")),
+                    const SnackBar(
+                        content: Text("Please select a new hostel!")),
                   );
                 }
               },
@@ -68,8 +92,7 @@ class _HostelChangePageState extends State<HostelChangePage> {
                 textStyle: const TextStyle(fontSize: 18),
               ),
               child: const Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 child: Text("Apply for Change"),
               ),
             ),
