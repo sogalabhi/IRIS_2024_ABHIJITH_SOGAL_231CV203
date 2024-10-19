@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:iris_app/models/user_model.dart';
+import 'package:iris_app/pages/login.dart';
 
 import 'hostelchange.dart';
 import 'hostelregisteration.dart';
@@ -45,10 +47,18 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void _signout() async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const LoginPage()));
+  }
 
   @override
   Widget build(BuildContext context) {
-    saveUserData(UserModel(name: "Abhijith", email: "abhijithsogal@gmail.com", rollNumber: "1234t", currentHostel: ""));
+    saveUserData(UserModel(
+        name: "Abhijith",
+        email: "abhijithsogal@gmail.com",
+        rollNumber: "1234t",
+        currentHostel: ""));
     loadUserData();
     return Scaffold(
       appBar: AppBar(
@@ -96,7 +106,7 @@ class _HomePageState extends State<HomePage> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => HostelRegistrationPage()),
+                        builder: (context) => const HostelRegistrationPage()),
                   );
                   if (result != null) {
                     setState(() {
@@ -126,6 +136,10 @@ class _HomePageState extends State<HomePage> {
               child: Text(hostel.isEmpty
                   ? "Register for Hostel"
                   : "Apply for Hostel Change"),
+            ),
+            ElevatedButton(
+              onPressed: _signout,
+              child: const Text('Log Out'),
             ),
           ],
         ),
