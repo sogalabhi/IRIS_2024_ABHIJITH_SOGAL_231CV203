@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:iris_app/pages/homepage.dart';
 import 'package:iris_app/pages/login.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -10,12 +12,31 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
+  @override
+  void initState() {
+    _chkUserStatus();
+    super.initState();
+  }
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _rollNoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String uid = "";
+  void _chkUserStatus() {
+    User? user = FirebaseAuth.instance.currentUser;
+
+    if (user != null) {
+      print(user);
+      // User is already signed in, redirect to home page
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    }
+  }
+
   Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -25,20 +46,20 @@ class _RegisterPageState extends State<RegisterPage> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        FirebaseAuth.instance.authStateChanges().listen((User? user) {
-          if (user != null) {
-            setState(() {
-              uid = user.uid;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$uid Registered successfully!')),
-              );
-            });
-            print(user.uid);
-          }
-        });
+
+        String uid = userCredential.user!.uid;
+        print(uid);
         // You can store additional user details in Firestore if needed
+        await FirebaseFirestore.instance.collection('users').doc(uid).set({
+          'name': _nameController.text.trim(),
+          'rollNumber': _rollNoController.text.trim(),
+          'email': _emailController.text.trim(),
+        });
 
         // Show a success message or navigate to another page
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$uid Registered successfully!')),
+        );
 
         // Clear the fields
         _nameController.clear();
@@ -120,8 +141,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const LoginPage()),
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
                   );
                 },
                 child: const Text('Go to login page'),

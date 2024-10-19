@@ -26,19 +26,12 @@ class _LoginPageState extends State<LoginPage> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        FirebaseAuth.instance.authStateChanges().listen((User? user) {
-          if (user != null) {
-            setState(() {
-              uid = user.uid;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('$uid Logined successfully!')),
-              );
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (context) => const HomePage()));
-            });
-            print(user.uid);
-          }
-        });
+        print(("usercred $userCredential"));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Logined successfully!')),
+        );
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => const HomePage()));
         // You can store additional user details in Firestore if needed
 
         // Show a success message or navigate to another page
