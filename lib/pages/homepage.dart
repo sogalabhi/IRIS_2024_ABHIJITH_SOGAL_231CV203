@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
@@ -19,129 +20,151 @@ class _HomePageState extends State<HomePage> {
   String email = "";
   String rollNumber = "";
   String hostel = ""; // Empty or null if no hostel registration yet
-
+  var userData = {};
   @override
   void dispose() {
     Hive.close();
     super.dispose();
   }
 
-  void saveUserData(UserModel user) async {
-    var userBox = Hive.box('userBox');
-    userBox.put('user', user);
+  @override
+  void initState() {
+    // loadUserData();
+    getData();
+    super.initState();
   }
 
-  void loadUserData() {
-    var userBox = Hive.box('userBox');
-    UserModel? user = userBox.get('user');
+  void getData() async {
+    String? uid = FirebaseAuth.instance.currentUser?.uid;
+    print("uid: $uid");
+    try {
+      DocumentSnapshot documentSnapshot =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
 
+      if (documentSnapshot.exists) {
+        setState(() {
+          userData = documentSnapshot.data() as Map<String, dynamic>;
+          print(userData);
+        });
+      } else {
+        print("User document does not exist.");
+      }
+    } catch (e) {
+      print("Error fetching user data: $e");
+    }
+  }
+
+  void loadUserData() async {
+    var userBox = Hive.box('userBox');
+    UserModel? user = await userBox.get('user');
+    print("user: $user");
     if (user != null) {
       // Display or use user information
-      setState(() {
-        name = user.name;
-        email = user.email;
-        rollNumber = user.rollNumber;
-        hostel = user.currentHostel as String;
-      });
       print(user.name);
     }
   }
 
   void _signout() async {
     await FirebaseAuth.instance.signOut();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)=>const LoginPage()));
+    Navigator.pushReplacement(
+        context, MaterialPageRoute(builder: (context) => const LoginPage()));
   }
 
   @override
   Widget build(BuildContext context) {
-    saveUserData(UserModel(
-        name: "Abhijith",
-        email: "abhijithsogal@gmail.com",
-        rollNumber: "1234t",
-        currentHostel: ""));
-    loadUserData();
     return Scaffold(
       appBar: AppBar(
         title: const Text("User Dashboard"),
         centerTitle: true,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 20),
-            // Name
-            _buildInfoTile("Name", name),
-            const SizedBox(height: 10),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 20),
+              // Name
+              _buildInfoTile("Name", userData['name']),
+              const SizedBox(height: 10),
 
-            // Email
-            _buildInfoTile("Email", email),
-            const SizedBox(height: 10),
+              // Email
+              _buildInfoTile("Email", userData['email']),
+              const SizedBox(height: 10),
 
-            // Roll Number
-            _buildInfoTile("Roll Number", rollNumber),
-            const SizedBox(height: 10),
+              // Roll Number
+              _buildInfoTile("Roll Number", userData['rollNumber']),
+              const SizedBox(height: 10),
 
-            // Hostel Info
-            if (hostel.isNotEmpty) _buildInfoTile("Hostel", hostel),
-            if (hostel.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 10),
-                child: Text(
-                  "No hostel registered yet.",
-                  style: TextStyle(
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.bold,
+              // Hostel Info
+              if (userData['currentHostel']['hostelName'].isNotEmpty)
+                _buildInfoTile(
+                    "Hostel", userData['currentHostel']['hostelName']),
+
+              const SizedBox(height: 10),
+
+              if (userData['currentHostel']['wingName'].isNotEmpty)
+                _buildInfoTile("Wing", userData['currentHostel']['wingName']),
+              if (userData['currentHostel']['hostelName'].isEmpty)
+                const Padding(
+                  padding: EdgeInsets.only(top: 10),
+                  child: Text(
+                    "No hostel registered yet.",
+                    style: TextStyle(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            const SizedBox(height: 20),
+              const SizedBox(height: 20),
 
-            // Button to Register or Apply for Hostel Change
-            ElevatedButton(
-              onPressed: () async {
-                if (hostel.isEmpty) {
-                  // Navigate to the registration page
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const HostelRegistrationPage()),
-                  );
-                  if (result != null) {
-                    setState(() {
-                      hostel = result; // Update hostel after registration
-                    });
+              // Button to Register or Apply for Hostel Change
+              ElevatedButton(
+                onPressed: () async {
+                  if (userData['currentHostel']['hostelName'].isEmpty) {
+                    // Navigate to the registration page
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const HostelRegistrationPage()),
+                    );
+                    if (result != null) {
+                      setState(() {
+                        userData['currentHostel']['hostelName'] =
+                            result; // Update hostel after registration
+                      });
+                    }
+                  } else {
+                    // Navigate to the hostel change application page
+                    final newHostel = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => HostelChangePage(
+                              currentHostel: userData['currentHostel']['hostelName'])),
+                    );
+                    if (newHostel != null) {
+                      setState(() {
+                        userData['currentHostel']['hostelName'] =
+                            newHostel; // Update hostel after change
+                      });
+                    }
                   }
-                } else {
-                  // Navigate to the hostel change application page
-                  final newHostel = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            HostelChangePage(currentHostel: hostel)),
-                  );
-                  if (newHostel != null) {
-                    setState(() {
-                      hostel = newHostel; // Update hostel after change
-                    });
-                  }
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                textStyle: const TextStyle(fontSize: 18),
+                },
+                style: ElevatedButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
+                child: Text(userData['currentHostel']['hostelName'].isEmpty
+                    ? "Register for Hostel"
+                    : "Apply for Hostel Change"),
               ),
-              child: Text(hostel.isEmpty
-                  ? "Register for Hostel"
-                  : "Apply for Hostel Change"),
-            ),
-            ElevatedButton(
-              onPressed: _signout,
-              child: const Text('Log Out'),
-            ),
-          ],
+              ElevatedButton(
+                onPressed: _signout,
+                child: const Text('Log Out'),
+              ),
+            ],
+          ),
         ),
       ),
     );

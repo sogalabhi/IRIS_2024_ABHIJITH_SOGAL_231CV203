@@ -1,4 +1,6 @@
 // Page for Hostel Registration
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class HostelRegistrationPage extends StatefulWidget {
@@ -9,93 +11,129 @@ class HostelRegistrationPage extends StatefulWidget {
 }
 
 class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
-  final _hostelOptions = [
-    {"name": "Hostel 1", "availableRooms": 10, "layout": "Layout A"},
-    {"name": "Hostel 2", "availableRooms": 5, "layout": "Layout B"},
-    {"name": "Hostel 3", "availableRooms": 3, "layout": "Layout C"},
-    {"name": "Hostel 4", "availableRooms": 8, "layout": "Layout D"},
-  ];
+  String? selectedHostel;
+  String? selectedWing;
+  Map<String, dynamic> hostels = {
+    'CrNgsVcyV5zXdddfmdPp': {
+      'name': 'Hostel 2',
+      'totalVacancies': 10,
+      'wings': {
+        'Tf37zdAScYzmTcxjQSsl': {'vacancies': 4, 'name': 'Wing 1'},
+        'n4q5GUOknwhKJWjWUM6B': {'vacancies': 6, 'name': 'Wing 2'}
+      }
+    },
+    'wqHSHXgYpHVCc4p6hJFn': {
+      'name': 'Hostel 1',
+      'totalVacancies': 50,
+      'wings': {
+        'FwZtb0T9fX2lUBkszcDR': {'vacancies': 10, 'name': 'Wing 2'},
+        'O2OqmGuvh0KHIxQozO9Q': {'vacancies': 20, 'name': 'Wing 4'},
+        'UqhEpTtVR1WaZY1vr6NB': {'vacancies': 10, 'name': 'Wing 1'},
+        'WuEUnncLn4SQwALxMtFl': {'vacancies': 10, 'name': 'Wing 3'}
+      }
+    }
+  };
+  Future<void> updateHostelData(
+      String hostelId, String wingId, String userId) async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  String? _selectedHostel;
-  Map<String, dynamic>? _hostelDetails;
+    // Get the updated hostel data
+    Map<String, dynamic> updatedHostelData = hostels[hostelId]!;
+
+    try {
+      // Update the hostel document in Firestore
+      await firestore.collection('hostels').doc(hostelId).update({
+        'totalVacancies': updatedHostelData['totalVacancies'],
+        'wings': updatedHostelData['wings']
+      });
+
+      // Update the current hostel in the user's document
+      await firestore.collection('users').doc(userId).update({
+        'currentHostel': {
+          'hostelId': hostelId,
+          'hostelName': updatedHostelData['name'],
+          'wingId': wingId,
+          'wingName': updatedHostelData['wings'][wingId]['name'],
+        },
+      });
+      print('Hostel data updated successfully');
+    } catch (e) {
+      print('Failed to update hostel data: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Register for Hostel"),
+        title: const Text("Register Hostel"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Select a Hostel",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
+      body: Column(
+        children: [
+          DropdownButton<String>(
+            hint: const Text('Select Hostel'),
+            value: selectedHostel,
+            isExpanded: true,
+            items: hostels.keys.map((String hostelKey) {
+              return DropdownMenuItem<String>(
+                value: hostelKey,
+                child: Text(hostels[hostelKey]['name']),
+              );
+            }).toList(),
+            onChanged: (newValue) {
+              setState(() {
+                selectedHostel = newValue;
+                selectedWing = null; // Reset wing dropdown on hostel change
+              });
+            },
+          ),
+          const SizedBox(height: 10),
+          DropdownButton<String>(
+            hint: const Text('Select Wing'),
+            value: selectedWing,
+            isExpanded: true,
+            items: selectedHostel != null
+                ? (hostels[selectedHostel]!['wings'] as Map<String, dynamic>)
+                    .keys
+                    .map((String wingKey) {
+                    return DropdownMenuItem<String>(
+                      value: wingKey,
+                      child: Text(
+                          hostels[selectedHostel]!['wings'][wingKey]['name']),
+                    );
+                  }).toList()
+                : [],
+            onChanged: (newValue) {
+              setState(() {
+                selectedWing = newValue;
+              });
+            },
+          ),
+          ElevatedButton(
+            onPressed: selectedHostel != null && selectedWing != null
+                ? () {
+                    setState(() {
+                      if (hostels[selectedHostel]!['totalVacancies'] > 0 &&
+                          hostels[selectedHostel]!['wings']
+                                  [selectedWing]!['vacancies'] >
+                              0) {
+                        // Decrease total vacancies for the selected hostel
+                        hostels[selectedHostel]!['totalVacancies']--;
 
-            // Dropdown to select hostel
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              value: _selectedHostel,
-              hint: const Text("Choose a Hostel"),
-              items: _hostelOptions.map((hostel) {
-                return DropdownMenuItem<String>(
-                  value: hostel["name"] as String?,
-                  child: Text(hostel["name"] as String),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedHostel = value;
-                  _hostelDetails = _hostelOptions.firstWhere(
-                      (hostel) => hostel["name"] == _selectedHostel);
-                });
-              },
-            ),
-            const SizedBox(height: 20),
-
-            if (_hostelDetails != null) ...[
-              const Text(
-                "Hostel Details:",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  decoration: TextDecoration.underline,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text("Available Rooms: ${_hostelDetails!["availableRooms"]}"),
-              Text("Layout: ${_hostelDetails!["layout"]}"),
-              const SizedBox(height: 30),
-            ],
-
-            // Submit button
-            ElevatedButton(
-              onPressed: () {
-                if (_selectedHostel != null) {
-                  Navigator.pop(
-                      context, _selectedHostel); // Pass selected hostel
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Please select a hostel!")),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                textStyle: const TextStyle(fontSize: 18),
-              ),
-              child: const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                child: Text("Register"),
-              ),
-            ),
-          ],
-        ),
+                        // Decrease vacancies for the selected wing
+                        hostels[selectedHostel]!['wings']
+                            [selectedWing]!['vacancies']--;
+                        var uid = FirebaseAuth.instance.currentUser?.uid;
+                        print(uid);
+                        updateHostelData(selectedHostel!, selectedWing!, uid!);
+                        print(hostels);
+                      }
+                    });
+                  }
+                : null, // Disable button if no hostel or wing is selected,
+            child: const Text("Register"),
+          )
+        ],
       ),
     );
   }
