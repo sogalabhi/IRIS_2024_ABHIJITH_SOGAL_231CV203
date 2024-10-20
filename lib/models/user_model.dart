@@ -13,7 +13,7 @@ class UserModel {
   final String rollNumber;
 
   @HiveField(3)
-  final String? currentHostel;
+  final Map? currentHostel;
 
   UserModel({
     required this.name,

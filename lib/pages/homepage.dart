@@ -145,7 +145,9 @@ class _HomePageState extends State<HomePage> {
                     if (newHostel != null) {
                       setState(() {
                         userData['currentHostel']['hostelName'] =
-                            newHostel; // Update hostel after change
+                            newHostel['hostel']; // Update hostel after change
+                        userData['currentHostel']['wingName'] =
+                            newHostel['wing']; // Update hostel after change
                       });
                     }
                   }

@@ -20,7 +20,7 @@ class UserModelAdapter extends TypeAdapter<UserModel> {
       name: fields[0] as String,
       email: fields[1] as String,
       rollNumber: fields[2] as String,
-      currentHostel: fields[3] as String?,
+      currentHostel: fields[3] as Map?,
     );
   }
 

@@ -70,7 +70,7 @@ class _RegisterPageState extends State<RegisterPage> {
             name: name,
             email: email,
             rollNumber: rollNumber,
-            currentHostel: ''));
+            currentHostel: {}));
 
         void loadUserData() async {
           var userBox = Hive.box('userBox');

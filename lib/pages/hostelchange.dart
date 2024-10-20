@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class HostelChangePage extends StatefulWidget {
   final String currentHostel;
@@ -13,26 +15,27 @@ class HostelChangePage extends StatefulWidget {
 class _HostelChangePageState extends State<HostelChangePage> {
   String? selectedHostel;
   String? selectedWing;
-  Map<String, dynamic> hostels = {
-    'CrNgsVcyV5zXdddfmdPp': {
-      'name': 'Hostel 2',
-      'totalVacancies': 10,
-      'wings': {
-        'Tf37zdAScYzmTcxjQSsl': {'vacancies': 4, 'name': 'Wing 1'},
-        'n4q5GUOknwhKJWjWUM6B': {'vacancies': 6, 'name': 'Wing 2'}
+  Map<String, dynamic> hostels = {};
+
+  Future<Map<String, dynamic>> getAllHostels() async {
+    try {
+      // Fetch all documents from the 'hostels' collection
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('hostels').get();
+
+      // Loop through each document and store it in the map
+      for (var doc in querySnapshot.docs) {
+        setState(() {
+          hostels[doc.id] = doc
+              .data(); // doc.id is the document ID, doc.data() contains the data
+        });
       }
-    },
-    'wqHSHXgYpHVCc4p6hJFn': {
-      'name': 'Hostel 1',
-      'totalVacancies': 50,
-      'wings': {
-        'FwZtb0T9fX2lUBkszcDR': {'vacancies': 10, 'name': 'Wing 2'},
-        'O2OqmGuvh0KHIxQozO9Q': {'vacancies': 20, 'name': 'Wing 4'},
-        'UqhEpTtVR1WaZY1vr6NB': {'vacancies': 10, 'name': 'Wing 1'},
-        'WuEUnncLn4SQwALxMtFl': {'vacancies': 10, 'name': 'Wing 3'}
-      }
+    } catch (e) {
+      print("Error fetching hostels: $e");
     }
-  };
+    return hostels; // Return the hostels map
+  }
+
   Future<void> updateHostelData(
       String hostelId, String wingId, String userId) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -56,12 +59,28 @@ class _HostelChangePageState extends State<HostelChangePage> {
           'wingName': updatedHostelData['wings'][wingId]['name'],
         },
       });
+      var userBox = await Hive.openBox('userBox');
+      await userBox.put('currentHostel', {
+        'currentHostel': {
+          'hostelId': hostelId,
+          'hostelName': updatedHostelData['name'],
+          'wingId': wingId,
+          'wingName': updatedHostelData['wings'][wingId]['name'],
+        },
+      });
       print('Hostel data updated successfully');
     } catch (e) {
       print('Failed to update hostel data: $e');
     }
   }
+
   String? _newHostel;
+  @override
+  void initState() {
+    getAllHostels();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -84,8 +103,8 @@ class _HostelChangePageState extends State<HostelChangePage> {
               value: selectedHostel,
               isExpanded: true,
               items: hostels.keys
-                  .where((entry) =>
-                      hostels[entry]['name'] != widget.currentHostel)
+                  .where(
+                      (entry) => hostels[entry]['name'] != widget.currentHostel)
                   .map((String hostelKey) {
                 return DropdownMenuItem<String>(
                   value: hostelKey,
@@ -121,6 +140,9 @@ class _HostelChangePageState extends State<HostelChangePage> {
                 });
               },
             ),
+            const SizedBox(
+              height: 10,
+            ),
             ElevatedButton(
               onPressed: selectedHostel != null && selectedWing != null
                   ? () {
@@ -139,7 +161,8 @@ class _HostelChangePageState extends State<HostelChangePage> {
                           print(uid);
                           updateHostelData(
                               selectedHostel!, selectedWing!, uid!);
-                          Navigator.pop(context, _newHostel);
+                          Navigator.pop(
+                              context, {'hostel': hostels[selectedHostel]!['name'], 'wing': hostels[selectedHostel]!['wings'][selectedWing]['name']});
                         }
                       });
                     }

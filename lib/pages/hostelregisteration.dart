@@ -13,26 +13,45 @@ class HostelRegistrationPage extends StatefulWidget {
 class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
   String? selectedHostel;
   String? selectedWing;
-  Map<String, dynamic> hostels = {
-    'CrNgsVcyV5zXdddfmdPp': {
-      'name': 'Hostel 2',
-      'totalVacancies': 10,
-      'wings': {
-        'Tf37zdAScYzmTcxjQSsl': {'vacancies': 4, 'name': 'Wing 1'},
-        'n4q5GUOknwhKJWjWUM6B': {'vacancies': 6, 'name': 'Wing 2'}
+  Map<String, dynamic> hostels={};
+  // Map<String, dynamic> hostels = {
+  //   'CrNgsVcyV5zXdddfmdPp': {
+  //     'name': 'Hostel 2',
+  //     'totalVacancies': 10,
+  //     'wings': {
+  //       'Tf37zdAScYzmTcxjQSsl': {'vacancies': 4, 'name': 'Wing 1'},
+  //       'n4q5GUOknwhKJWjWUM6B': {'vacancies': 6, 'name': 'Wing 2'}
+  //     }
+  //   },
+  //   'wqHSHXgYpHVCc4p6hJFn': {
+  //     'name': 'Hostel 1',
+  //     'totalVacancies': 50,
+  //     'wings': {
+  //       'FwZtb0T9fX2lUBkszcDR': {'vacancies': 10, 'name': 'Wing 2'},
+  //       'O2OqmGuvh0KHIxQozO9Q': {'vacancies': 20, 'name': 'Wing 4'},
+  //       'UqhEpTtVR1WaZY1vr6NB': {'vacancies': 10, 'name': 'Wing 1'},
+  //       'WuEUnncLn4SQwALxMtFl': {'vacancies': 10, 'name': 'Wing 3'}
+  //     }
+  //   }
+  // };
+  Future<Map<String, dynamic>> getAllHostels() async {
+    try {
+      // Fetch all documents from the 'hostels' collection
+      QuerySnapshot querySnapshot =
+          await FirebaseFirestore.instance.collection('hostels').get();
+
+      // Loop through each document and store it in the map
+      for (var doc in querySnapshot.docs) {
+        hostels[doc.id] = doc
+            .data(); // doc.id is the document ID, doc.data() contains the data
       }
-    },
-    'wqHSHXgYpHVCc4p6hJFn': {
-      'name': 'Hostel 1',
-      'totalVacancies': 50,
-      'wings': {
-        'FwZtb0T9fX2lUBkszcDR': {'vacancies': 10, 'name': 'Wing 2'},
-        'O2OqmGuvh0KHIxQozO9Q': {'vacancies': 20, 'name': 'Wing 4'},
-        'UqhEpTtVR1WaZY1vr6NB': {'vacancies': 10, 'name': 'Wing 1'},
-        'WuEUnncLn4SQwALxMtFl': {'vacancies': 10, 'name': 'Wing 3'}
-      }
+    } catch (e) {
+      print("Error fetching hostels: $e");
     }
-  };
+    print(hostels);
+    return hostels; // Return the hostels map
+  }
+
   Future<void> updateHostelData(
       String hostelId, String wingId, String userId) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -60,6 +79,12 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
     } catch (e) {
       print('Failed to update hostel data: $e');
     }
+  }
+
+  @override
+  void initState() {
+    getAllHostels();
+    super.initState();
   }
 
   @override
