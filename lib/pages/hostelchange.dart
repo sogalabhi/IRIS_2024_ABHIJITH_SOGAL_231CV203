@@ -5,7 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HostelChangePage extends StatefulWidget {
-  final String currentHostel;
+  final Map currentHostel;
 
   const HostelChangePage({super.key, required this.currentHostel});
   @override
@@ -15,6 +15,7 @@ class HostelChangePage extends StatefulWidget {
 class _HostelChangePageState extends State<HostelChangePage> {
   String? selectedHostel;
   String? selectedWing;
+  String? selectedFloor;
   Map<String, dynamic> hostels = {};
 
   Future<Map<String, dynamic>> getAllHostels() async {
@@ -37,35 +38,50 @@ class _HostelChangePageState extends State<HostelChangePage> {
   }
 
   Future<void> updateHostelData(
-      String hostelId, String wingId, String userId) async {
+      String hostelId,
+      String wingId,
+      String floorId,
+      String oldhostelid,
+      String oldfloorid,
+      String oldwingid,
+      String userId) async {
+    //firestore init
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
+    // Use a batch write for efficient upload
+    WriteBatch batch = firestore.batch();
+
     // Get the updated hostel data
-    Map<String, dynamic> updatedHostelData = hostels[hostelId]!;
-
+    Map<String, dynamic> updatedHostelData = hostels;
+    print("updatedHostelData: $updatedHostelData");
     try {
-      // Update the hostel document in Firestore
-      await firestore.collection('hostels').doc(hostelId).update({
-        'totalVacancies': updatedHostelData['totalVacancies'],
-        'wings': updatedHostelData['wings']
+      // Iterate through the Map and upload each hostel document
+      updatedHostelData.forEach((hostelId, hostelInfo) {
+        DocumentReference docRef =
+            firestore.collection('hostels').doc(hostelId);
+        batch.set(
+            docRef, hostelInfo); // Use set to overwrite the entire document
       });
-
+      await batch.commit();
+      print('Hostels updated successfully.');
       // Update the current hostel in the user's document
       await firestore.collection('users').doc(userId).update({
         'currentHostel': {
           'hostelId': hostelId,
-          'hostelName': updatedHostelData['name'],
+          'hostelName': updatedHostelData[hostelId]['name'],
           'wingId': wingId,
-          'wingName': updatedHostelData['wings'][wingId]['name'],
+          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings'][wingId]['name'],
+          'floorId': floorId,
+          'floorNumber ': updatedHostelData[hostelId]['floors'][floorId]['name'],
         },
       });
       var userBox = await Hive.openBox('userBox');
       await userBox.put('currentHostel', {
         'currentHostel': {
           'hostelId': hostelId,
-          'hostelName': updatedHostelData['name'],
+          'hostelName': updatedHostelData[hostelId]['name'],
           'wingId': wingId,
-          'wingName': updatedHostelData['wings'][wingId]['name'],
+          'wingName':updatedHostelData[hostelId]['floors'][floorId]['wings'][wingId]['name'],
         },
       });
       print('Hostel data updated successfully');
@@ -93,7 +109,7 @@ class _HostelChangePageState extends State<HostelChangePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Current Hostel: ${widget.currentHostel}",
+              "Current Hostel: ${widget.currentHostel['currentHostel']['hostelName']}",
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
@@ -103,8 +119,9 @@ class _HostelChangePageState extends State<HostelChangePage> {
               value: selectedHostel,
               isExpanded: true,
               items: hostels.keys
-                  .where(
-                      (entry) => hostels[entry]['name'] != widget.currentHostel)
+                  .where((entry) =>
+                      hostels[entry]['name'] !=
+                      widget.currentHostel['currentHostel']['hostelName'])
                   .map((String hostelKey) {
                 return DropdownMenuItem<String>(
                   value: hostelKey,
@@ -115,6 +132,30 @@ class _HostelChangePageState extends State<HostelChangePage> {
                 setState(() {
                   selectedHostel = newValue;
                   selectedWing = null; // Reset wing dropdown on hostel change
+                  selectedFloor = null; // Reset wing dropdown on hostel change
+                });
+              },
+            ),
+            const SizedBox(height: 10),
+            DropdownButton<String>(
+              hint: const Text('Select Floor'),
+              value: selectedFloor,
+              isExpanded: true,
+              items: selectedHostel != null
+                  ? (hostels[selectedHostel]!['floors'] as Map<String, dynamic>)
+                      .keys
+                      .map((String floorKey) {
+                      return DropdownMenuItem<String>(
+                        value: floorKey,
+                        child: Text(hostels[selectedHostel]!['floors'][floorKey]
+                            ['name']),
+                      );
+                    }).toList()
+                  : [],
+              onChanged: (newValue) {
+                setState(() {
+                  selectedFloor = newValue;
+                  selectedWing = null;
                 });
               },
             ),
@@ -123,14 +164,15 @@ class _HostelChangePageState extends State<HostelChangePage> {
               hint: const Text('Select Wing'),
               value: selectedWing,
               isExpanded: true,
-              items: selectedHostel != null
-                  ? (hostels[selectedHostel]!['wings'] as Map<String, dynamic>)
+              items: selectedHostel != null && selectedFloor != null
+                  ? (hostels[selectedHostel]!['floors'][selectedFloor]['wings']
+                          as Map<String, dynamic>)
                       .keys
                       .map((String wingKey) {
                       return DropdownMenuItem<String>(
                         value: wingKey,
-                        child: Text(
-                            hostels[selectedHostel]!['wings'][wingKey]['name']),
+                        child: Text(hostels[selectedHostel]!['floors']
+                            [selectedFloor]['wings'][wingKey]['name']),
                       );
                     }).toList()
                   : [],
@@ -147,22 +189,51 @@ class _HostelChangePageState extends State<HostelChangePage> {
               onPressed: selectedHostel != null && selectedWing != null
                   ? () {
                       setState(() {
-                        if (hostels[selectedHostel]!['totalVacancies'] > 0 &&
-                            hostels[selectedHostel]!['wings']
-                                    [selectedWing]!['vacancies'] >
-                                0) {
+                        if (hostels[selectedHostel]!['floors'][selectedFloor]
+                                ['wings'][selectedWing]['vacancies'] >
+                            0) {
                           // Decrease total vacancies for the selected hostel
                           hostels[selectedHostel]!['totalVacancies']--;
 
+                          // Decrease vacancies for the selected floor
+                          hostels[selectedHostel]!['floors'][selectedFloor]
+                              ['vacancies']--;
+
                           // Decrease vacancies for the selected wing
-                          hostels[selectedHostel]!['wings']
-                              [selectedWing]!['vacancies']--;
+                          hostels[selectedHostel]!['floors'][selectedFloor]
+                              ['wings'][selectedWing]['vacancies']--;
+
+                          // INcrease vacancies in old hostel floor wing
+                          var oldhostelid =
+                              widget.currentHostel['currentHostel']['hostelId'];
+                          var oldfloorid =
+                              widget.currentHostel['currentHostel']['floorId'];
+                          var oldwingid =
+                              widget.currentHostel['currentHostel']['wingId'];
+
+                          hostels[oldhostelid]!['totalVacancies']++;
+                          hostels[oldhostelid]!['floors'][oldfloorid]
+                              ['vacancies']++;
+                          hostels[oldhostelid]!['floors'][oldfloorid]['wings']
+                              [oldwingid]['vacancies']++;
+
+                          print("Update hostel data: $hostels");
                           var uid = FirebaseAuth.instance.currentUser?.uid;
-                          print(uid);
                           updateHostelData(
-                              selectedHostel!, selectedWing!, uid!);
-                          Navigator.pop(
-                              context, {'hostel': hostels[selectedHostel]!['name'], 'wing': hostels[selectedHostel]!['wings'][selectedWing]['name']});
+                              selectedHostel!,
+                              selectedWing!,
+                              selectedFloor!,
+                              oldhostelid!,
+                              oldfloorid!,
+                              oldwingid!,
+                              uid!);
+                          Navigator.pop(context, {
+                            'hostel': hostels[selectedHostel]!['name'],
+                            'wing': hostels[selectedHostel]!['floors']
+                                [selectedFloor]['wings'][selectedWing]['name'],
+                            'floor': hostels[selectedHostel]!['floors']
+                                [selectedFloor]['name']
+                          });
                         }
                       });
                     }

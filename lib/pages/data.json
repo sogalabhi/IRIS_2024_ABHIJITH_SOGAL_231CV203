@@ -1,0 +1,33 @@
+{
+    floors: {
+        floor1: {
+            vacancies: 20, 
+            wings: {
+                wing1: {
+                    vacancies: 10, 
+                    name: Wing 1
+                }, 
+                wing2: {
+                    vacancies: 10, name: Wing 2
+                }
+            }, 
+            name: Floor 1
+        }, 
+        floor2: {
+            vacancies: 19,
+            wings: {
+                wing1: {
+                    vacancies: 10, 
+                    name: Wing 1
+                }, 
+                wing2: {
+                    vacancies: 9, 
+                    name: Wing 2
+                }
+            }, 
+            name: Floor2
+        }
+    },
+    name: Hostel 2, 
+    totalVacancies: 39
+}

@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   String email = "";
   String rollNumber = "";
   String hostel = ""; // Empty or null if no hostel registration yet
-  var userData = {};
+  late Map<dynamic, dynamic> userData;
   @override
   void dispose() {
     Hive.close();
@@ -31,12 +31,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     // loadUserData();
     getData();
+
     super.initState();
   }
 
   void getData() async {
     String? uid = FirebaseAuth.instance.currentUser?.uid;
-    print("uid: $uid");
     try {
       DocumentSnapshot documentSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -44,7 +44,6 @@ class _HomePageState extends State<HomePage> {
       if (documentSnapshot.exists) {
         setState(() {
           userData = documentSnapshot.data() as Map<String, dynamic>;
-          print(userData);
         });
       } else {
         print("User document does not exist.");
@@ -57,7 +56,6 @@ class _HomePageState extends State<HomePage> {
   void loadUserData() async {
     var userBox = Hive.box('userBox');
     UserModel? user = await userBox.get('user');
-    print("user: $user");
     if (user != null) {
       // Display or use user information
       print(user.name);
@@ -102,9 +100,14 @@ class _HomePageState extends State<HomePage> {
                     "Hostel", userData['currentHostel']['hostelName']),
 
               const SizedBox(height: 10),
-
               if (userData['currentHostel']['wingName'].isNotEmpty)
                 _buildInfoTile("Wing", userData['currentHostel']['wingName']),
+
+              const SizedBox(height: 10),
+              if (userData['currentHostel']['floorNumber']!=null)
+                _buildInfoTile(
+                    "Floor", '${userData['currentHostel']['floorNumber']}'),
+
               if (userData['currentHostel']['hostelName'].isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 10),
@@ -136,11 +139,12 @@ class _HomePageState extends State<HomePage> {
                     }
                   } else {
                     // Navigate to the hostel change application page
+                    print("currenthostel $userData");
                     final newHostel = await Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => HostelChangePage(
-                              currentHostel: userData['currentHostel']['hostelName'])),
+                              currentHostel: userData)),
                     );
                     if (newHostel != null) {
                       setState(() {
@@ -148,6 +152,8 @@ class _HomePageState extends State<HomePage> {
                             newHostel['hostel']; // Update hostel after change
                         userData['currentHostel']['wingName'] =
                             newHostel['wing']; // Update hostel after change
+                        userData['currentHostel']['floorNumber'] =
+                            newHostel['floor']; // Update hostel after change
                       });
                     }
                   }
