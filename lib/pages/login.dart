@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:iris_app/pages/homepage.dart';
+import 'package:iris_app/pages/admin/dashboard.dart';
+import 'package:iris_app/pages/user/homepage.dart';
 import 'package:iris_app/pages/register.dart';
 
 class LoginPage extends StatefulWidget {
@@ -29,8 +30,14 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Logined successfully!')),
         );
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const HomePage()));
+        if (_emailController.text.trim() == "admin@gmail.com") {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const AdminDashboardPage()));
+        } else {
+          Navigator.pushReplacement(context,
+              MaterialPageRoute(builder: (context) => const HomePage()));
+        }
+
         // You can store additional user details in Firestore if needed
 
         // Show a success message or navigate to another page

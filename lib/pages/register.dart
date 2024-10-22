@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:iris_app/pages/homepage.dart';
+import 'package:iris_app/pages/user/homepage.dart';
 import 'package:iris_app/pages/login.dart';
 
 import '../models/user_model.dart';
@@ -54,7 +54,14 @@ class _RegisterPageState extends State<RegisterPage> {
           'name': name,
           'rollNumber': rollNumber,
           'email': email,
-          'currentHostel': ""
+          'currentHostel': {
+            'floorId': '',
+            'floorNumber': '',
+            'hostelId': '',
+            'hostelName': '',
+            'wingId': '',
+            'wingName': ''
+          }
         });
 
         // Show a success message or navigate to another page
@@ -84,12 +91,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
         loadUserData();
         // Clear the fields
-        // _nameController.clear();
-        // _rollNoController.clear();
-        // _emailController.clear();
-        // _passwordController.clear();
-        // Navigator.pushReplacement(
-        //     context, MaterialPageRoute(builder: (context) => const HomePage()));
+        _nameController.clear();
+        _rollNoController.clear();
+        _emailController.clear();
+        _passwordController.clear();
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: (context) => const HomePage()));
       } catch (e) {
         // Handle registration error
         ScaffoldMessenger.of(context).showSnackBar(
@@ -138,7 +145,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your email';
-                    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                    } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                        .hasMatch(value)) {
                       return 'Please enter a valid email';
                     }
                     return null;
@@ -166,7 +174,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   onPressed: () {
                     Navigator.pushReplacement(
                       context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
                     );
                   },
                   child: const Text('Go to login page'),

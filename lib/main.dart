@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:iris_app/pages/homepage.dart';
+import 'package:iris_app/pages/admin/dashboard.dart';
+import 'package:iris_app/pages/admin/hostelchangerequests.dart';
+import 'package:iris_app/pages/login.dart';
+import 'package:iris_app/pages/user/homepage.dart';
+import 'package:iris_app/pages/user/hostelchange.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';

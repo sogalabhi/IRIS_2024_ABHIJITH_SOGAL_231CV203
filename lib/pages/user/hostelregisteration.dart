@@ -4,15 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
-class HostelChangePage extends StatefulWidget {
-  final Map currentHostel;
+class HostelRegistrationPage extends StatefulWidget {
 
-  const HostelChangePage({super.key, required this.currentHostel});
+  const HostelRegistrationPage({super.key});
   @override
-  State<HostelChangePage> createState() => _HostelChangePageState();
+  State<HostelRegistrationPage> createState() => _HostelRegistrationPageState();
 }
 
-class _HostelChangePageState extends State<HostelChangePage> {
+class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
   String? selectedHostel;
   String? selectedWing;
   String? selectedFloor;
@@ -38,13 +37,7 @@ class _HostelChangePageState extends State<HostelChangePage> {
   }
 
   Future<void> updateHostelData(
-      String hostelId,
-      String wingId,
-      String floorId,
-      String oldhostelid,
-      String oldfloorid,
-      String oldwingid,
-      String userId) async {
+      String hostelId, String wingId, String floorId, String userId) async {
     //firestore init
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
@@ -70,9 +63,11 @@ class _HostelChangePageState extends State<HostelChangePage> {
           'hostelId': hostelId,
           'hostelName': updatedHostelData[hostelId]['name'],
           'wingId': wingId,
-          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings'][wingId]['name'],
+          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
+              [wingId]['name'],
           'floorId': floorId,
-          'floorNumber ': updatedHostelData[hostelId]['floors'][floorId]['name'],
+          'floorNumber ': updatedHostelData[hostelId]['floors'][floorId]
+              ['name'],
         },
       });
       var userBox = await Hive.openBox('userBox');
@@ -81,7 +76,11 @@ class _HostelChangePageState extends State<HostelChangePage> {
           'hostelId': hostelId,
           'hostelName': updatedHostelData[hostelId]['name'],
           'wingId': wingId,
-          'wingName':updatedHostelData[hostelId]['floors'][floorId]['wings'][wingId]['name'],
+          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
+              [wingId]['name'],
+          'floorId': floorId,
+          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]['wings']
+              [wingId]['name'],
         },
       });
       print('Hostel data updated successfully');
@@ -101,27 +100,18 @@ class _HostelChangePageState extends State<HostelChangePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Apply for Hostel Change"),
+        title: const Text("Register hostel"),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Current Hostel: ${widget.currentHostel['currentHostel']['hostelName']}",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-
             DropdownButton<String>(
               hint: const Text('Select Hostel'),
               value: selectedHostel,
               isExpanded: true,
               items: hostels.keys
-                  .where((entry) =>
-                      hostels[entry]['name'] !=
-                      widget.currentHostel['currentHostel']['hostelName'])
                   .map((String hostelKey) {
                 return DropdownMenuItem<String>(
                   value: hostelKey,
@@ -203,30 +193,11 @@ class _HostelChangePageState extends State<HostelChangePage> {
                           hostels[selectedHostel]!['floors'][selectedFloor]
                               ['wings'][selectedWing]['vacancies']--;
 
-                          // INcrease vacancies in old hostel floor wing
-                          var oldhostelid =
-                              widget.currentHostel['currentHostel']['hostelId'];
-                          var oldfloorid =
-                              widget.currentHostel['currentHostel']['floorId'];
-                          var oldwingid =
-                              widget.currentHostel['currentHostel']['wingId'];
-
-                          hostels[oldhostelid]!['totalVacancies']++;
-                          hostels[oldhostelid]!['floors'][oldfloorid]
-                              ['vacancies']++;
-                          hostels[oldhostelid]!['floors'][oldfloorid]['wings']
-                              [oldwingid]['vacancies']++;
 
                           print("Update hostel data: $hostels");
                           var uid = FirebaseAuth.instance.currentUser?.uid;
-                          updateHostelData(
-                              selectedHostel!,
-                              selectedWing!,
-                              selectedFloor!,
-                              oldhostelid!,
-                              oldfloorid!,
-                              oldwingid!,
-                              uid!);
+                          updateHostelData(selectedHostel!, selectedWing!,
+                              selectedFloor!, uid!);
                           Navigator.pop(context, {
                             'hostel': hostels[selectedHostel]!['name'],
                             'wing': hostels[selectedHostel]!['floors']
@@ -238,7 +209,7 @@ class _HostelChangePageState extends State<HostelChangePage> {
                       });
                     }
                   : null, // Disable button if no hostel or wing is selected,
-              child: const Text("Apply for Change"),
+              child: const Text("Register the hostel"),
             ),
             // Submit button
           ],

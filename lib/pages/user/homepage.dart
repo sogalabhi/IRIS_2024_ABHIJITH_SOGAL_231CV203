@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/login.dart';
+import 'package:iris_app/pages/user/applyleave.dart';
 
 import 'hostelchange.dart';
 import 'hostelregisteration.dart';
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
   String email = "";
   String rollNumber = "";
   String hostel = ""; // Empty or null if no hostel registration yet
-  late Map<dynamic, dynamic> userData;
+  Map<dynamic, dynamic>? userData;
   @override
   void dispose() {
     Hive.close();
@@ -70,6 +71,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (userData == null) {
+      return const CircularProgressIndicator(); // Show loading indicator while fetching data
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text("User Dashboard"),
@@ -83,32 +87,31 @@ class _HomePageState extends State<HomePage> {
             children: [
               const SizedBox(height: 20),
               // Name
-              _buildInfoTile("Name", userData['name']),
+              _buildInfoTile("Name", userData?['name']),
               const SizedBox(height: 10),
 
               // Email
-              _buildInfoTile("Email", userData['email']),
+              _buildInfoTile("Email", userData?['email']),
               const SizedBox(height: 10),
 
               // Roll Number
-              _buildInfoTile("Roll Number", userData['rollNumber']),
+              _buildInfoTile("Roll Number", userData?['rollNumber']),
               const SizedBox(height: 10),
 
               // Hostel Info
-              if (userData['currentHostel']['hostelName'].isNotEmpty)
+              if (userData?['currentHostel']['hostelName'].isNotEmpty)
                 _buildInfoTile(
-                    "Hostel", userData['currentHostel']['hostelName']),
+                    "Hostel", userData?['currentHostel']['hostelName']),
 
               const SizedBox(height: 10),
-              if (userData['currentHostel']['wingName'].isNotEmpty)
-                _buildInfoTile("Wing", userData['currentHostel']['wingName']),
+              if (userData?['currentHostel']['wingName'].isNotEmpty)
+                _buildInfoTile("Wing", userData?['currentHostel']['wingName']),
 
-              const SizedBox(height: 10),
-              if (userData['currentHostel']['floorNumber']!=null)
-                _buildInfoTile(
-                    "Floor", '${userData['currentHostel']['floorNumber']}'),
+              // const SizedBox(height: 10),
+              // if (userData?['currentHostel']['floorNumber'].isNotEmpty)
+              //   _buildInfoTile("Floor", userData?['currentHostel']['floorNumber']),
 
-              if (userData['currentHostel']['hostelName'].isEmpty)
+              if (userData?['currentHostel']['hostelName'].isEmpty)
                 const Padding(
                   padding: EdgeInsets.only(top: 10),
                   child: Text(
@@ -124,7 +127,7 @@ class _HomePageState extends State<HomePage> {
               // Button to Register or Apply for Hostel Change
               ElevatedButton(
                 onPressed: () async {
-                  if (userData['currentHostel']['hostelName'].isEmpty) {
+                  if (userData?['currentHostel']['hostelName'].isEmpty) {
                     // Navigate to the registration page
                     final result = await Navigator.push(
                       context,
@@ -133,8 +136,12 @@ class _HomePageState extends State<HomePage> {
                     );
                     if (result != null) {
                       setState(() {
-                        userData['currentHostel']['hostelName'] =
-                            result; // Update hostel after registration
+                        userData?['currentHostel']['hostelName'] =
+                            result['hostel']; // Update hostel after change
+                        userData?['currentHostel']['wingName'] =
+                            result['wing']; // Update hostel after change
+                        userData?['currentHostel']['floorNumber'] =
+                            result['floor']; // Update hostel after change
                       });
                     }
                   } else {
@@ -143,16 +150,16 @@ class _HomePageState extends State<HomePage> {
                     final newHostel = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => HostelChangePage(
-                              currentHostel: userData)),
+                          builder: (context) =>
+                              HostelChangePage(currentHostel: userData!)),
                     );
                     if (newHostel != null) {
                       setState(() {
-                        userData['currentHostel']['hostelName'] =
+                        userData?['currentHostel']['hostelName'] =
                             newHostel['hostel']; // Update hostel after change
-                        userData['currentHostel']['wingName'] =
+                        userData?['currentHostel']['wingName'] =
                             newHostel['wing']; // Update hostel after change
-                        userData['currentHostel']['floorNumber'] =
+                        userData?['currentHostel']['floorNumber'] =
                             newHostel['floor']; // Update hostel after change
                       });
                     }
@@ -163,9 +170,13 @@ class _HomePageState extends State<HomePage> {
                       const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                   textStyle: const TextStyle(fontSize: 18),
                 ),
-                child: Text(userData['currentHostel']['hostelName'].isEmpty
+                child: Text(userData?['currentHostel']['hostelName'].isEmpty
                     ? "Register for Hostel"
                     : "Apply for Hostel Change"),
+              ),
+              ElevatedButton(
+                onPressed: (){Navigator.push(context, MaterialPageRoute(builder: (context)=>LeaveApplicationForm()));},
+                child: const Text('Apply for leave'),
               ),
               ElevatedButton(
                 onPressed: _signout,
