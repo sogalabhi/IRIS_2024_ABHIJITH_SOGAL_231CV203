@@ -66,7 +66,7 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
           'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
               [wingId]['name'],
           'floorId': floorId,
-          'floorNumber ': updatedHostelData[hostelId]['floors'][floorId]
+          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]
               ['name'],
         },
       });
@@ -89,7 +89,6 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
     }
   }
 
-  String? _newHostel;
   @override
   void initState() {
     getAllHostels();

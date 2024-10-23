@@ -53,7 +53,7 @@ class _HostelManagementPageState extends State<HostelManagementPage> {
             Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => CreateHostelPage()));
+                    builder: (context) => const CreateHostelPage()));
           },
           child: const Icon(
             Icons.add_box_sharp,
@@ -129,12 +129,12 @@ class _HostelManagementPageState extends State<HostelManagementPage> {
   // Helper function to build the list of floors and wings
   List<Widget> _buildFloorsList(Map<String, dynamic> floors) {
     List<Widget> floorsList = [];
-    floors.forEach((floorName, floorData) {
+    floors.forEach((floorNumber, floorData) {
       floorsList.add(
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(floorData['name'] ?? floorName),
+            Text(floorData['name'] ?? floorNumber),
             ..._buildWingsList(floorData['wings']),
           ],
         ),

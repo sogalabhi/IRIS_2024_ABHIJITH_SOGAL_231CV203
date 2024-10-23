@@ -1,17 +1,45 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:iris_app/pages/admin/hostelchangerequests.dart';
-import 'package:iris_app/pages/admin/manageHostels.dart';
+import 'package:iris_app/pages/admin/managehostels.dart';
 import 'package:iris_app/pages/admin/usermanagement.dart';
 import 'package:iris_app/pages/admin/usersonleave.dart';
 import 'package:iris_app/pages/login.dart';
 
-class AdminDashboardPage extends StatelessWidget {
+class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
   @override
+  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+}
+
+class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  int? users = 0, hostels = 0, leaveApplications = 0;
+  void getDocumentCount() async {
+    // Get the collection reference
+    QuerySnapshot snapshot1 =
+        await FirebaseFirestore.instance.collection('users').get();
+    QuerySnapshot snapshot2 =
+        await FirebaseFirestore.instance.collection('hostels').get();
+    QuerySnapshot snapshot3 =
+        await FirebaseFirestore.instance.collection('leave_applications').get();
+    setState(() {
+      users = snapshot1.docs.length;
+      hostels = snapshot2.docs.length;
+      leaveApplications = snapshot3.docs.length;
+    });
+  }
+
+  @override
+  void initState() {
+    getDocumentCount();
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    void _signout() async {
+    void signout() async {
       await FirebaseAuth.instance.signOut();
       Navigator.pushReplacement(
           context, MaterialPageRoute(builder: (context) => const LoginPage()));
@@ -22,7 +50,7 @@ class AdminDashboardPage extends StatelessWidget {
         title: const Text("Admin Dashboard"),
         actions: [
           ElevatedButton(
-            onPressed: _signout,
+            onPressed: signout,
             child: const Icon(Icons.logout),
           ),
         ],
@@ -44,11 +72,11 @@ class AdminDashboardPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  buildOverviewCard("Total Hostels", "5", Icons.home),
+                  buildOverviewCard("Total Hostels", '$hostels', Icons.home),
                   buildOverviewCard(
-                      "Total hostellites", "780", Icons.location_city),
-                  buildOverviewCard(
-                      "Available Vacancies", "200", Icons.event_seat),
+                      "Total hostellites", '$users', Icons.location_city),
+                  buildOverviewCard("Leave applications", '$leaveApplications',
+                      Icons.event_seat),
                 ],
               ),
             ),

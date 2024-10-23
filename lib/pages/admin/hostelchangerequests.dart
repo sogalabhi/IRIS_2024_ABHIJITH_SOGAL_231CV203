@@ -135,7 +135,7 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
           'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
               [wingId]['name'],
           'floorId': floorId,
-          'floorNumber ': updatedHostelData[hostelId]['floors'][floorId]
+          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]
               ['name'],
         },
       });

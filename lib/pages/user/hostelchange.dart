@@ -43,52 +43,42 @@ class _HostelChangePageState extends State<HostelChangePage> {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // Get the updated hostel data
-    Map<String, dynamic> updatedHostelData = hostels;
-    print("updatedHostelData: $updatedHostelData");
-    WriteBatch batch = firestore.batch();
+    Map<String, dynamic> updatedHostelDataForRequest = {
+      'hostelId': hostelId,
+      'hostelName': hostels[hostelId]['name'],
+      'wingId': wingId,
+      'wingName': hostels[hostelId]['floors'][floorId]['wings'][wingId]['name'],
+      'floorId': floorId,
+      'floorNumber': hostels[hostelId]['floors'][floorId]['name'],
+      'userId': userId,
+      'status': 'pending'
+    };
+    print("updatedHostelData: ${updatedHostelDataForRequest.keys}");
     try {
-      updatedHostelData.forEach((hostelId, hostelInfo) {
-        DocumentReference docRef =
-            firestore.collection('hostels').doc(hostelId);
-        batch.set(
-            docRef, hostelInfo); // Use set to overwrite the entire document
-      });
-      await batch.commit();
-
-      print('Hostels updated successfully.');
+      CollectionReference collectionReference =
+          firestore.collection('hostel_change_requests');
+      await collectionReference.doc(userId).set(updatedHostelDataForRequest);
       // Update the current hostel in the user's document
-      await firestore.collection('users').doc(userId).update({
-        'currentHostel': {
-          'hostelId': hostelId,
-          'hostelName': updatedHostelData[hostelId]['name'],
-          'wingId': wingId,
-          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
-              [wingId]['name'],
-          'floorId': floorId,
-          'floorNumber ': updatedHostelData[hostelId]['floors'][floorId]
-              ['name'],
+
+      await firestore.collection('users').doc(userId).update(
+        {
+          'newHostel': {
+            'hostelId': hostelId,
+            'hostelName': updatedHostelDataForRequest['hostelName'],
+            'wingId': wingId,
+            'wingName': updatedHostelDataForRequest['wingName'],
+            'floorId': floorId,
+            'floorNumber': updatedHostelDataForRequest['floorNumber'],
+            'status': 'pending'
+          },
         },
-      });
-      var userBox = await Hive.openBox('userBox');
-      await userBox.put('currentHostel', {
-        'currentHostel': {
-          'hostelId': hostelId,
-          'hostelName': updatedHostelData[hostelId]['name'],
-          'wingId': wingId,
-          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
-              [wingId]['name'],
-          'floorId': floorId,
-          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]['wings']
-              [wingId]['name'],
-        },
-      });
+      );
       print('Hostel data updated successfully');
     } catch (e) {
       print('Failed to update hostel data: $e');
     }
   }
 
-  String? _newHostel;
   @override
   void initState() {
     getAllHostels();
@@ -191,43 +181,39 @@ class _HostelChangePageState extends State<HostelChangePage> {
                                 ['wings'][selectedWing]['vacancies'] >
                             0) {
                           // Decrease total vacancies for the selected hostel
-                          hostels[selectedHostel]!['totalVacancies']--;
+                          // hostels[selectedHostel]!['totalVacancies']--;
 
-                          // Decrease vacancies for the selected floor
-                          hostels[selectedHostel]!['floors'][selectedFloor]
-                              ['vacancies']--;
+                          // // Decrease vacancies for the selected floor
+                          // hostels[selectedHostel]!['floors'][selectedFloor]
+                          //     ['vacancies']--;
 
-                          // Decrease vacancies for the selected wing
-                          hostels[selectedHostel]!['floors'][selectedFloor]
-                              ['wings'][selectedWing]['vacancies']--;
+                          // // Decrease vacancies for the selected wing
+                          // hostels[selectedHostel]!['floors'][selectedFloor]
+                          //     ['wings'][selectedWing]['vacancies']--;
 
-                          // INcrease vacancies in old hostel floor wing
-                          var oldhostelid =
-                              widget.currentHostel['currentHostel']['hostelId'];
-                          var oldfloorid =
-                              widget.currentHostel['currentHostel']['floorId'];
-                          var oldwingid =
-                              widget.currentHostel['currentHostel']['wingId'];
+                          // // INcrease vacancies in old hostel floor wing
+                          // var oldhostelid =
+                          //     widget.currentHostel['currentHostel']['hostelId'];
+                          // var oldfloorid =
+                          //     widget.currentHostel['currentHostel']['floorId'];
+                          // var oldwingid =
+                          //     widget.currentHostel['currentHostel']['wingId'];
 
-                          hostels[oldhostelid]!['totalVacancies']++;
-                          hostels[oldhostelid]!['floors'][oldfloorid]
-                              ['vacancies']++;
-                          hostels[oldhostelid]!['floors'][oldfloorid]['wings']
-                              [oldwingid]['vacancies']++;
+                          // hostels[oldhostelid]!['totalVacancies']++;
+                          // hostels[oldhostelid]!['floors'][oldfloorid]
+                          //     ['vacancies']++;
+                          // hostels[oldhostelid]!['floors'][oldfloorid]['wings']
+                          //     [oldwingid]['vacancies']++;
 
-                          print("Update hostel data: $hostels");
+                          // print("Update hostel data: $hostels");
                           var uid = FirebaseAuth.instance.currentUser?.uid;
                           print(
                               'uid $selectedHostel $selectedWing $selectedFloor');
                           updateHostelData(selectedHostel!, selectedWing!,
                               selectedFloor!, uid!);
-                          Navigator.pop(context, {
-                            'hostel': hostels[selectedHostel]!['name'],
-                            'wing': hostels[selectedHostel]!['floors']
-                                [selectedFloor]['wings'][selectedWing]['name'],
-                            'floor': hostels[selectedHostel]!['floors']
-                                [selectedFloor]['name']
-                          });
+                          // Navigator.pop(context);
+                        } else {
+                          print("no vacancy");
                         }
                       });
                     }

@@ -3,13 +3,13 @@ import 'package:flutter/material.dart';
 
 class CreateHostelPage extends StatefulWidget {
   final Map<String, dynamic>? hostelData;
-  String? docID;
-  String? hostelId;
+  final String? docID;
+  final String? hostelId;
 
-  CreateHostelPage({super.key, this.hostelData, this.hostelId, this.docID});
+  const CreateHostelPage({super.key, this.hostelData, this.hostelId, this.docID});
 
   @override
-  _CreateHostelPageState createState() => _CreateHostelPageState();
+  State<CreateHostelPage> createState() => _CreateHostelPageState();
 }
 
 class _CreateHostelPageState extends State<CreateHostelPage> {
