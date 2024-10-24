@@ -27,12 +27,16 @@ class _LoginPageState extends State<LoginPage> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Logined successfully!')),
         );
         if (_emailController.text.trim() == "admin@gmail.com") {
-          Navigator.pushReplacement(context,
-              MaterialPageRoute(builder: (context) => const AdminDashboardPage()));
+          Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const AdminDashboardPage()));
         } else {
           Navigator.pushReplacement(context,
               MaterialPageRoute(builder: (context) => const HomePage()));

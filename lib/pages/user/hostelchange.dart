@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class HostelChangePage extends StatefulWidget {
   final Map currentHostel;
@@ -51,7 +49,7 @@ class _HostelChangePageState extends State<HostelChangePage> {
       'floorId': floorId,
       'floorNumber': hostels[hostelId]['floors'][floorId]['name'],
       'userId': userId,
-      'status': 'pending'
+      'status': 'pending',
     };
     print("updatedHostelData: ${updatedHostelDataForRequest.keys}");
     try {
@@ -211,7 +209,14 @@ class _HostelChangePageState extends State<HostelChangePage> {
                               'uid $selectedHostel $selectedWing $selectedFloor');
                           updateHostelData(selectedHostel!, selectedWing!,
                               selectedFloor!, uid!);
-                          // Navigator.pop(context);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Application of hostel changed applied successfully!')),
+                          );
+
+                          Navigator.pop(context);
                         } else {
                           print("no vacancy");
                         }

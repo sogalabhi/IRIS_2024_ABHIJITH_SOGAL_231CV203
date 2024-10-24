@@ -11,20 +11,54 @@ class HostelChangeRequestsPage extends StatefulWidget {
 }
 
 class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
-  Map<String, dynamic> hostels = {};
+  @override
+  void initState() {
+    getHostelsList();
+    super.initState();
+  }
 
-  Future<Map<String, dynamic>> getAllHostels() async {
+  Map<String, dynamic> allHostels = {};
+  void getHostelsList() async {
+    // Loop through each document and store it in the map
+    QuerySnapshot hostelSnapshot =
+        await FirebaseFirestore.instance.collection('hostels').get();
+    for (var doc in hostelSnapshot.docs) {
+      setState(() {
+        allHostels[doc.id] = doc.data();
+      });
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAllHostels() async {
+    List<Map<String, dynamic>> hostels = [];
     try {
       // Fetch all documents from the 'hostels' collection
-      QuerySnapshot querySnapshot =
-          await FirebaseFirestore.instance.collection('hostels').get();
+      QuerySnapshot hostelChangeRequests = await FirebaseFirestore.instance
+          .collection('hostel_change_requests')
+          .where('status', isEqualTo: 'pending')
+          .get();
 
-      // Loop through each document and store it in the map
-      for (var doc in querySnapshot.docs) {
-        setState(() {
-          hostels[doc.id] = doc
-              .data(); // doc.id is the document ID, doc.data() contains the data
-              print(hostels);
+      for (var doc in hostelChangeRequests.docs) {
+        Map requestData = doc.data() as Map;
+        String uid = requestData['userId'];
+        String hostelId = requestData['hostelId'];
+        String floorId = requestData['floorId'];
+        String wingId = requestData['wingId'];
+        DocumentSnapshot userSnapshot =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        Map userData = userSnapshot.data() as Map;
+        DocumentSnapshot hostelSnapshot = await FirebaseFirestore.instance
+            .collection('hostels')
+            .doc(hostelId)
+            .get();
+        Map<String, dynamic> hostelData =
+            hostelSnapshot.data() as Map<String, dynamic>;
+        hostels.add({
+          'request': requestData,
+          'user': userData,
+          'hostel': hostelData,
+          'floorId': floorId,
+          'wingId': wingId,
         });
       }
     } catch (e) {
@@ -32,11 +66,45 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
     }
     return hostels; // Return the hostels map
   }
-@override
-  void initState() {
-    getAllHostels();
-    super.initState();
+
+  Future<List<Map<String, dynamic>>> getAllRequestHIstory() async {
+    List<Map<String, dynamic>> history = [];
+    try {
+      QuerySnapshot hostelChangeRequestshistory = await FirebaseFirestore
+          .instance
+          .collection('hostel_change_requests')
+          .where('status', whereIn: ['approved', 'rejected']).get();
+      // Loop through each document and store it in the map
+      for (var doc in hostelChangeRequestshistory.docs) {
+        Map requestData = doc.data() as Map;
+        String uid = requestData['userId'];
+        String hostelId = requestData['hostelId'];
+        String floorId = requestData['floorId'];
+        String wingId = requestData['wingId'];
+        DocumentSnapshot userSnapshot =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
+        Map userData = userSnapshot.data() as Map;
+        DocumentSnapshot hostelSnapshot = await FirebaseFirestore.instance
+            .collection('hostels')
+            .doc(hostelId)
+            .get();
+        Map<String, dynamic> hostelData =
+            hostelSnapshot.data() as Map<String, dynamic>;
+
+        history.add({
+          'request': requestData,
+          'user': userData,
+          'hostel': hostelData,
+          'floorId': floorId,
+          'wingId': wingId,
+        });
+      }
+    } catch (e) {
+      print("Error fetching hostels: $e");
+    }
+    return history; // Return the hostels map
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,27 +123,53 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildRequestCard(
-                    userName: 'John Doe',
-                    currentHostel: 'Hostel A',
-                    requestedWing: 'Wing 2',
-                    requestedFloor: 'Floor 3',
-                    availableVacancies: 5,
-                  ),
-                  _buildRequestCard(
-                    userName: 'Jane Smith',
-                    currentHostel: 'Hostel B',
-                    requestedWing: 'Wing 1',
-                    requestedFloor: 'Floor 2',
-                    availableVacancies: 2,
-                  ),
-                ],
-              ),
-            ),
 
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: getAllHostels(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('No hostel change requests found'));
+                }
+
+                // List of hostel change requests with user and hostel data
+                List<Map<String, dynamic>> requests = snapshot.data!;
+
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: requests.length,
+                    itemBuilder: (context, index) {
+                      Map<String, dynamic> requestData =
+                          requests[index]['request'];
+                      Map<String, dynamic> userData = requests[index]['user'];
+                      Map<String, dynamic> hostelData =
+                          requests[index]['hostel'];
+                      String wingId = requests[index]['wingId'];
+                      String floorId = requests[index]['floorId'];
+                      return _buildRequestCard(
+                          request: requests[index],
+                          availableVacancies: hostelData['floors'][floorId]
+                              ['wings'][wingId]['vacancies'],
+                          currentHostel: userData['currentHostel']
+                              ['hostelName'],
+                          requestedFloor: requestData['floorNumber'],
+                          requestedHostel: requestData['hostelName'],
+                          requestedWing: requestData['wingName'],
+                          userName: userData['name'],
+                          allHostels: allHostels);
+                    },
+                  ),
+                );
+              },
+            ),
             // Divider to separate sections
             const Divider(height: 30, color: Colors.grey),
 
@@ -84,23 +178,48 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
               'Request History',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 10),
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildHistoryCard(
-                    userName: 'John Doe',
-                    action: 'Approved',
-                    date: '12 Oct, 2024',
+
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: getAllRequestHIstory(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(
+                      child: Text('No hostel change requests found'));
+                }
+
+                // List of hostel change requests with user and hostel data
+                List<Map<String, dynamic>> requests = snapshot.data!;
+                return Expanded(
+                  child: ListView.builder(
+                    itemCount: requests.length,
+                    itemBuilder: (context, index) {
+                      Map<String, dynamic> requestData =
+                          requests[index]['request'];
+                      Map<String, dynamic> userData = requests[index]['user'];
+                      Map<String, dynamic> hostelData =
+                          requests[index]['hostel'];
+                      String wingId = requests[index]['wingId'];
+                      String floorId = requests[index]['floorId'];
+                      return _buildHistoryCard(
+                        action: requestData['status'],
+                        rollNumber: userData['rollNumber'],
+                        toHostel: requestData['hostelName'],
+                        userName: userData['name'],
+                      );
+                    },
                   ),
-                  _buildHistoryCard(
-                    userName: 'Jane Smith',
-                    action: 'Rejected',
-                    date: '10 Oct, 2024',
-                  ),
-                ],
-              ),
+                );
+              },
             ),
+            const SizedBox(height: 10),
           ],
         ),
       ),
@@ -108,13 +227,12 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
   }
 
   Future<void> updateHostelData(Map<String, dynamic> hostels, String hostelId,
-      String wingId, String floorId, String userId) async {
+      String wingId, String floorId, String userId, String statusmsg) async {
     //firestore init
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
     // Get the updated hostel data
     Map<String, dynamic> updatedHostelData = hostels;
-    print("updatedHostelData: $updatedHostelData");
     WriteBatch batch = firestore.batch();
     try {
       updatedHostelData.forEach((hostelId, hostelInfo) {
@@ -135,9 +253,9 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
           'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
               [wingId]['name'],
           'floorId': floorId,
-          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]
-              ['name'],
+          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]['name'],
         },
+        'newHostel': FieldValue.delete(),
       });
       var userBox = await Hive.openBox('userBox');
       await userBox.put('currentHostel', {
@@ -152,6 +270,18 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
               [wingId]['name'],
         },
       });
+      DocumentReference docRef = FirebaseFirestore.instance
+          .collection('hostel_change_requests')
+          .doc(userId);
+
+      // Update the 'vacancies' field
+      await docRef.update({
+        'status': statusmsg, // Set the field to the new value
+      }).then((_) {
+        print("Field updated successfully!");
+      }).catchError((error) {
+        print("Error updating field: $error");
+      });
       print('Hostel data updated successfully');
     } catch (e) {
       print('Failed to update hostel data: $e');
@@ -159,13 +289,15 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
   }
 
   // Card Widget for Pending Requests
-  Widget _buildRequestCard({
-    required String userName,
-    required String currentHostel,
-    required String requestedWing,
-    required String requestedFloor,
-    required int availableVacancies,
-  }) {
+  Widget _buildRequestCard(
+      {required Map request,
+      required String userName,
+      required String currentHostel,
+      required String requestedHostel,
+      required String requestedWing,
+      required String requestedFloor,
+      required int availableVacancies,
+      required Map allHostels}) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
       elevation: 4,
@@ -175,10 +307,11 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'User: $userName',
+              'Name: $userName',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             Text('Current Hostel: $currentHostel'),
+            Text('Requested Hostel: $requestedHostel'),
             Text('Requested Wing: $requestedWing'),
             Text('Requested Floor: $requestedFloor'),
             const SizedBox(height: 8),
@@ -193,47 +326,50 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    // if (hostels[selectedHostel]!['floors'][selectedFloor]
-                    //         ['wings'][selectedWing]['vacancies'] >
-                    //     0) {
-                    //   // Decrease total vacancies for the selected hostel
-                    //   hostels[selectedHostel]!['totalVacancies']--;
+                    if (availableVacancies > 0) {
+                      String newhostelId = request['request']['hostelId'];
+                      String oldhostelId =
+                          request['user']['currentHostel']['hostelId'];
+                      String newfloorId = request['request']['floorId'];
+                      String oldfloorId =
+                          request['user']['currentHostel']['floorId'];
+                      String newwingId = request['request']['wingId'];
+                      String oldwingId =
+                          request['user']['currentHostel']['wingId'];
 
-                    //   // Decrease vacancies for the selected floor
-                    //   hostels[selectedHostel]!['floors'][selectedFloor]
-                    //       ['vacancies']--;
+                      //Decrease vacancy in new hostel
+                      //1. total vacancies
+                      allHostels[newhostelId]['totalVacancies']--;
+                      //2. floor vacancy
+                      allHostels[newhostelId]['floors'][newfloorId]
+                          ['vacancies']--;
+                      //3. wing vacancy
+                      allHostels[newhostelId]['floors'][newfloorId]['wings']
+                          [newwingId]['vacancies']--;
 
-                    //   // Decrease vacancies for the selected wing
-                    //   hostels[selectedHostel]!['floors'][selectedFloor]['wings']
-                    //       [selectedWing]['vacancies']--;
+                      //Increase vacancy in old hostel
+                      //1. total vacancies
+                      allHostels[oldhostelId]['totalVacancies']++;
+                      //2. floor vacancy
+                      allHostels[oldhostelId]['floors'][oldfloorId]
+                          ['vacancies']++;
+                      // //3. wing vacancy
+                      allHostels[oldhostelId]['floors'][oldfloorId]['wings']
+                          [oldwingId]['vacancies']++;
+                      print("Update hostel data: ${allHostels[oldhostelId]}");
+                      String uid = request['request']['userId'];
+                      //   print('uid $selectedHostel $selectedWing $selectedFloor');
+                      updateHostelData(allHostels as Map<String, dynamic>,
+                          newhostelId, newwingId, newfloorId, uid, "approved");
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Application approved'),
+                        ),
+                      );
 
-                    //   // INcrease vacancies in old hostel floor wing
-                    //   var oldhostelid =
-                    //       widget.currentHostel['currentHostel']['hostelId'];
-                    //   var oldfloorid =
-                    //       widget.currentHostel['currentHostel']['floorId'];
-                    //   var oldwingid =
-                    //       widget.currentHostel['currentHostel']['wingId'];
-
-                    //   hostels[oldhostelid]!['totalVacancies']++;
-                    //   hostels[oldhostelid]!['floors'][oldfloorid]
-                    //       ['vacancies']++;
-                    //   hostels[oldhostelid]!['floors'][oldfloorid]['wings']
-                    //       [oldwingid]['vacancies']++;
-
-                    //   print("Update hostel data: $hostels");
-                    //   var uid = FirebaseAuth.instance.currentUser?.uid;
-                    //   print('uid $selectedHostel $selectedWing $selectedFloor');
-                    //   updateHostelData(
-                    //       selectedHostel!, selectedWing!, selectedFloor!, uid!);
-                    //   Navigator.pop(context, {
-                    //     'hostel': hostels[selectedHostel]!['name'],
-                    //     'wing': hostels[selectedHostel]!['floors']
-                    //         [selectedFloor]['wings'][selectedWing]['name'],
-                    //     'floor': hostels[selectedHostel]!['floors']
-                    //         [selectedFloor]['name']
-                    //   });
-                    // }
+                      Navigator.pop(context);
+                    }
                   },
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(Colors.green),
@@ -261,7 +397,8 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
   Widget _buildHistoryCard({
     required String userName,
     required String action,
-    required String date,
+    required String rollNumber,
+    required String toHostel,
   }) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
@@ -272,11 +409,12 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'User: $userName',
+              'Name: $userName',
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             Text('Action: $action'),
-            Text('Date: $date'),
+            Text('Roll Number: $rollNumber'),
+            Text('To Hostel: $toHostel'),
           ],
         ),
       ),
