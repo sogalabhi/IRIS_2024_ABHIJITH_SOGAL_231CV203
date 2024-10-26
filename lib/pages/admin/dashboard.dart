@@ -6,6 +6,7 @@ import 'package:iris_app/pages/admin/managehostels.dart';
 import 'package:iris_app/pages/admin/usermanagement.dart';
 import 'package:iris_app/pages/admin/usersonleave.dart';
 import 'package:iris_app/pages/login.dart';
+import 'package:iris_app/pages/user/applyleave.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -43,7 +44,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
-    
     getDocumentCount();
     void signout() async {
       await FirebaseAuth.instance.signOut();
@@ -64,155 +64,185 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ),
         ],
         backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Overview section
-            const Text(
-              "Overview",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  buildOverviewCard("Total Hostels", '$hostels', Icons.home),
-                  buildOverviewCard(
-                      "Total hostellites", '$users', Icons.location_city),
-                  buildOverviewCard("Leave applications", '$leaveApplications',
-                      Icons.event_seat),
-                ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Overview section
+              const Text(
+                "Overview",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 32),
-
-            // Notifications section
-            const Text(
-              "Notifications",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              color: Colors.orange[50],
-              child: ListTile(
-                leading: const Icon(Icons.notification_important,
-                    color: Colors.orange),
-                title: const Text("Pending Hostel Change Requests"),
-                subtitle: Text("$hostelrequests requests awaiting approval"),
-                trailing: const Icon(Icons.arrow_forward),
-                onTap: () {
-                   Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HostelChangeRequestsPage(),
+              const SizedBox(height: 16),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    buildOverviewCard("Total Hostels", '$hostels', Icons.home,
+                        () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const HostelManagementPage(),
+                        ),
+                      );
+                    }),
+                    buildOverviewCard(
+                        "Total hostellites", '$users', Icons.location_city, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const UserManagementPage(),
+                        ),
+                      );
+                    }),
+                    buildOverviewCard("Leave applications",
+                        '$leaveApplications', Icons.event_seat, () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const LeaveApplicationsList(),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              if (hostelrequests != 0)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      "Notifications",
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 32),
+                    const SizedBox(height: 16),
+                    Card(
+                      color: Colors.orange[50],
+                      child: ListTile(
+                        leading: const Icon(Icons.notification_important,
+                            color: Colors.orange),
+                        title: const Text("Pending Hostel Change Requests"),
+                        subtitle:
+                            Text("$hostelrequests requests awaiting approval"),
+                        trailing: const Icon(Icons.arrow_forward),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  const HostelChangeRequestsPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              const SizedBox(height: 32),
 
-            // Quick Links section
-            const Text(
-              "Quick Links",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Quick Links section
+              const Text(
+                "Quick Links",
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Column(
                 children: [
-                  buildQuickLinkButton("Manage Hostels", Icons.manage_accounts,
-                      () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HostelManagementPage(),
-                      ),
-                    );
-                  }),
-                  const SizedBox(width: 10),
-                  buildQuickLinkButton("Users on Leave", Icons.person_off, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LeaveApplicationsList(),
-                      ),
-                    );
-                  }),
-                  const SizedBox(width: 10),
-                  buildQuickLinkButton("Process Requests", Icons.assignment,
-                      () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const HostelChangeRequestsPage(),
-                      ),
-                    );
-                  }),
-                  const SizedBox(width: 10),
-                  buildQuickLinkButton("Manage Users", Icons.assignment, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const UserManagementPage(),
-                      ),
-                    );
-                  }),
-                  const SizedBox(width: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      buildQuickLinkButton(
+                          "Manage Hostels", Icons.manage_accounts, () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HostelManagementPage(),
+                          ),
+                        );
+                      }),
+                      const SizedBox(width: 10),
+                      buildQuickLinkButton("Users on Leave", Icons.person_off,
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LeaveApplicationsList(),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      buildQuickLinkButton("Process Requests", Icons.assignment,
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const HostelChangeRequestsPage(),
+                          ),
+                        );
+                      }),
+                      const SizedBox(width: 10),
+                      buildQuickLinkButton("Manage Users", Icons.assignment,
+                          () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const UserManagementPage(),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
                 ],
               ),
-            ),
-            const SizedBox(height: 32),
-
-            // Current Hostel Status
-            const Text(
-              "Current Hostel Status",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Card(
-              color: Colors.deepPurple[50],
-              child: const ListTile(
-                leading: Icon(Icons.info, color: Color(0xff3b3e72)),
-                title: Text("Vacancies: 42 / Total Capacity: 60"),
-                subtitle: Text("Hostel 1 - Wing A, Wing B, Wing C"),
-              ),
-            ),
-          ],
+              const SizedBox(height: 32),
+            ],
+          ),
         ),
       ),
     );
   }
 
   // Helper function to build overview cards
-  Widget buildOverviewCard(String title, String count, IconData icon) {
+  Widget buildOverviewCard(
+      String title, String count, IconData icon, Function onPressed) {
     return Card(
-      elevation: 2,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: const Color(0xff3b3e72)),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              count,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-          ],
+      child: GestureDetector(
+        onTap: () => onPressed(),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          color: Colors.white24,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 40, color: const Color(0xff3b3e72)),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style:
+                    const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                count,
+                style:
+                    const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -220,24 +250,24 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   // Helper function to build quick link buttons
   Widget buildQuickLinkButton(String title, IconData icon, Function onPressed) {
-    return ElevatedButton.icon(
-      style: ElevatedButton.styleFrom(
-        minimumSize: const Size(100, 80),
-      ),
-      onPressed: () {
-        onPressed();
-      },
-      icon: Icon(icon, size: 30),
-      label: Text(
-        title,
-        textAlign: TextAlign.center,
+    return Expanded(
+      child: Card(
+        child: Container(
+          height: 100,
+          color: Colors.white24,
+          child: TextButton.icon(
+            onPressed: () {
+              onPressed();
+            },
+            icon: Icon(icon, size: 30, color: const Color(0xff3b3e72)),
+            label: Text(
+              title,
+              style: const TextStyle(color: Color(0xff3b3e72)),
+              textAlign: TextAlign.left,
+            ),
+          ),
+        ),
       ),
     );
   }
-}
-
-void main() {
-  runApp(const MaterialApp(
-    home: AdminDashboardPage(),
-  ));
 }

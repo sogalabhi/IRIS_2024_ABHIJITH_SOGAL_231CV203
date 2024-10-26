@@ -76,6 +76,7 @@ class _CreateHostelPageState extends State<CreateHostelPage> {
         title: Text(widget.hostelData != null ? "Edit Hostel" : "Add Hostel",
           style: const TextStyle(color: Colors.white),),
         backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

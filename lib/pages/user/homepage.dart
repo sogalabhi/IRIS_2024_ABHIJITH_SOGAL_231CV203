@@ -83,6 +83,7 @@ class _HomePageState extends State<HomePage> {
         title: const Text("User Dashboard",
           style: TextStyle(color: Colors.white),),
         backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
       ),
       body: SingleChildScrollView(

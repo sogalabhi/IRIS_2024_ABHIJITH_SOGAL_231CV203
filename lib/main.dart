@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:iris_app/pages/admin/dashboard.dart';
 import 'package:iris_app/pages/login.dart';
 import 'package:iris_app/pages/user/homepage.dart';
 import 'package:path_provider/path_provider.dart';
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff3b3e72)),
         useMaterial3: true,
       ),
-      home: const LoginPage(),
+      home: const AdminDashboardPage(),
     );
   }
 }

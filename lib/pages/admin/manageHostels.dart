@@ -49,6 +49,7 @@ class _HostelManagementPageState extends State<HostelManagementPage> {
         title: const Text('Hostel List',
           style: TextStyle(color: Colors.white),),
         backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       floatingActionButton: GestureDetector(
           onTap: () {

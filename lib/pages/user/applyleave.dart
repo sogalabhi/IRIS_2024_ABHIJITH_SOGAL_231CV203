@@ -78,7 +78,8 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
     return Scaffold(
       appBar: AppBar(title: const Text('Leave Application Form',
           style: TextStyle(color: Colors.white),),
-        backgroundColor: const Color(0xff3b3e72),),
+        backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white),),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

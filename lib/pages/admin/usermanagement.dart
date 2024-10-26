@@ -1,157 +1,152 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:iris_app/pages/admin/allocatehostel.dart';
 
-class UserManagementPage extends StatelessWidget {
+class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
 
   @override
+  State<UserManagementPage> createState() => _UserManagementPageState();
+}
+
+class _UserManagementPageState extends State<UserManagementPage> {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getUsers() {
+    return FirebaseFirestore.instance.collection('users').snapshots();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    getUsers();
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Management',
-          style: TextStyle(color: Colors.white),),
+        title: const Text(
+          'User Management',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xff3b3e72),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              // Add user functionality
-            },
-          ),
-        ],
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Padding(
+      body: StreamBuilder<QuerySnapshot>(
+        stream: getUsers(),
+        builder: (context, snapshot) {
+          // Handle loading state
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          // Handle errors
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          // If there are no applications
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('No Leave Applications Found'));
+          }
+
+          // If data is available, display in a ListView
+          final List<DocumentSnapshot> users = snapshot.data!.docs;
+
+          return ListView.builder(
+            itemCount: users.length,
+            itemBuilder: (context, index) {
+              // Extract data from the Firestore document
+              final Map<String, dynamic> userData =
+                  users[index].data() as Map<String, dynamic>;
+              String uid = users[index].id;
+              ;
+              return userCard(userData, context, uid);
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  Widget userCard(Map user, BuildContext context, String uid) {
+    Future<void> deallocate() async {
+      FirebaseFirestore firestore = FirebaseFirestore.instance;
+      await firestore.collection('users').doc(uid).update({
+        'currentHostel': {
+          'floorId': '',
+          'floorNumber': '',
+          'hostelId': '',
+          'hostelName': '',
+          'wingId': '',
+          'wingName': ''
+        }
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Deallocated successfully!')),
+      );
+    }
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search/Filter Section
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration:
-                        const InputDecoration(labelText: 'Select Hostel'),
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'Hostel 1', child: Text('Hostel 1')),
-                      DropdownMenuItem(
-                          value: 'Hostel 2', child: Text('Hostel 2')),
-                    ],
-                    onChanged: (value) {},
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Select Wing'),
-                    items: const [
-                      DropdownMenuItem(value: 'Wing A', child: Text('Wing A')),
-                      DropdownMenuItem(value: 'Wing B', child: Text('Wing B')),
-                    ],
-                    onChanged: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration:
-                        const InputDecoration(labelText: 'Select Floor'),
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'Floor 1', child: Text('Floor 1')),
-                      DropdownMenuItem(
-                          value: 'Floor 2', child: Text('Floor 2')),
-                    ],
-                    onChanged: (value) {},
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration:
-                        const InputDecoration(labelText: 'Leave Status'),
-                    items: const [
-                      DropdownMenuItem(
-                          value: 'On Leave', child: Text('On Leave')),
-                      DropdownMenuItem(
-                          value: 'Present', child: Text('Present')),
-                    ],
-                    onChanged: (value) {},
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-
-            // User List Section
-            Expanded(
-              child: ListView.builder(
-                itemCount: 10, // Replace with your user count
-                itemBuilder: (context, index) {
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8.0),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // User details
-                          Text('Name: User $index',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          const Text('Email: user@example.com'),
-                          const Text('Roll No: 123456'),
-                          const Text('Hostel: Hostel 1'),
-                          const Text('Wing: Wing A'),
-                          const Text('Floor: Floor 1'),
-                          const SizedBox(height: 8),
-
-                          // Leave Status
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text('Status: Present'),
-                              Row(
-                                children: [
-                                  // Reallocate Button
-                                  TextButton(
-                                    onPressed: () {
-                                      // Reallocate user logic
-                                    },
-                                    child: const Text('Reallocate'),
-                                  ),
-                                  // Deallocate Button
-                                  TextButton(
-                                    onPressed: () {
-                                      // Deallocate user logic
-                                    },
-                                    child: const Text('Deallocate'),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+            // User details
+            Text('Name: ${user['name']}',
+                style: const TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('Email: ${user['email']}'),
+            Text('Roll No: ${user['rollNumber']}'),
+            if (user['currentHostel'] != '')
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Hostel: ${user['currentHostel']['hostelName']}'),
+                  Text('Floor: ${user['currentHostel']['floorNumber']}'),
+                  Text('Wing: ${user['currentHostel']['wingName']}'),
+                ],
               ),
+
+            const SizedBox(height: 8),
+
+            // Leave Status
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    if (user['currentHostel']['hostelName'] != '')
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HostelAllocationPage(
+                                      userData: user, uid: uid)));
+                        },
+                        child: const Text('Reallocate'),
+                      ),
+                    if (user['currentHostel']['hostelName'] == '')
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => HostelAllocationPage(
+                                      userData: user, uid: uid)));
+                        },
+                        child: const Text('Allocate'),
+                      ),
+                    GestureDetector(
+                      onDoubleTap: () {
+                        deallocate();
+                      },
+                      child: const Text('Double tap to deallocate'),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
-      ),
-      // Floating Action Button for any extra actions (e.g., add user)
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Add user functionality
-        },
-        child: const Icon(Icons.add),
       ),
     );
   }

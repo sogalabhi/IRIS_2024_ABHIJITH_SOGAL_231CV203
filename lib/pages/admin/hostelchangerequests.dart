@@ -111,7 +111,8 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
       appBar: AppBar(
         title: const Text('Hostel Change Requests',
           style: TextStyle(color: Colors.white),),
-        backgroundColor: const Color(0xff3b3e72), // AppBar color
+        backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white), // AppBar color
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

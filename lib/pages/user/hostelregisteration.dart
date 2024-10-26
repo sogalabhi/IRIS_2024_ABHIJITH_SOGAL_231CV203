@@ -102,6 +102,7 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

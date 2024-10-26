@@ -5,7 +5,7 @@ class LeaveApplicationsList extends StatelessWidget {
   const LeaveApplicationsList({super.key});
 
   // This function returns a stream of snapshots from Firestore
-  Stream<QuerySnapshot> _getLeaveApplicationsStream() {
+  Stream<QuerySnapshot<Map<String, dynamic>>> _getLeaveApplicationsStream() {
     return FirebaseFirestore.instance
         .collection('leave_applications')
         .snapshots();
@@ -30,6 +30,7 @@ class LeaveApplicationsList extends StatelessWidget {
         title: const Text('Leave Applications',
           style: TextStyle(color: Colors.white),),
         backgroundColor: const Color(0xff3b3e72),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _getLeaveApplicationsStream(),

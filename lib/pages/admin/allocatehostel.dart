@@ -1,16 +1,18 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-class HostelChangePage extends StatefulWidget {
-  final Map currentHostel;
-
-  const HostelChangePage({super.key, required this.currentHostel});
+class HostelAllocationPage extends StatefulWidget {
+  final Map userData;
+  final String uid;
+  const HostelAllocationPage({super.key, required this.userData, required this.uid});
   @override
-  State<HostelChangePage> createState() => _HostelChangePageState();
+  State<HostelAllocationPage> createState() => _HostelAllocationPageState();
 }
 
-class _HostelChangePageState extends State<HostelChangePage> {
+class _HostelAllocationPageState extends State<HostelAllocationPage> {
   String? selectedHostel;
   String? selectedWing;
   String? selectedFloor;
@@ -40,37 +42,34 @@ class _HostelChangePageState extends State<HostelChangePage> {
     //firestore init
     FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-    // Get the updated hostel data
-    Map<String, dynamic> updatedHostelDataForRequest = {
-      'hostelId': hostelId,
-      'hostelName': hostels[hostelId]['name'],
-      'wingId': wingId,
-      'wingName': hostels[hostelId]['floors'][floorId]['wings'][wingId]['name'],
-      'floorId': floorId,
-      'floorNumber': hostels[hostelId]['floors'][floorId]['name'],
-      'userId': userId,
-      'status': 'pending',
-    };
-    print("updatedHostelData: ${updatedHostelDataForRequest.keys}");
-    try {
-      CollectionReference collectionReference =
-          firestore.collection('hostel_change_requests');
-      await collectionReference.doc(userId).set(updatedHostelDataForRequest);
-      // Update the current hostel in the user's document
+    // Use a batch write for efficient upload
+    WriteBatch batch = firestore.batch();
 
-      await firestore.collection('users').doc(userId).update(
-        {
-          'newHostel': {
-            'hostelId': hostelId,
-            'hostelName': updatedHostelDataForRequest['hostelName'],
-            'wingId': wingId,
-            'wingName': updatedHostelDataForRequest['wingName'],
-            'floorId': floorId,
-            'floorNumber': updatedHostelDataForRequest['floorNumber'],
-            'status': 'pending'
-          },
+    // Get the updated hostel data
+    Map<String, dynamic> updatedHostelData = hostels;
+    print("updatedHostelData: $updatedHostelData");
+    try {
+      // Iterate through the Map and upload each hostel document
+      updatedHostelData.forEach((hostelId, hostelInfo) {
+        DocumentReference docRef =
+            firestore.collection('hostels').doc(hostelId);
+        batch.set(
+            docRef, hostelInfo); // Use set to overwrite the entire document
+      });
+      await batch.commit();
+      print('Hostels updated successfully.');
+      // Update the current hostel in the user's document
+      await firestore.collection('users').doc(userId).update({
+        'currentHostel': {
+          'hostelId': hostelId,
+          'hostelName': updatedHostelData[hostelId]['name'],
+          'wingId': wingId,
+          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
+              [wingId]['name'],
+          'floorId': floorId,
+          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]['name'],
         },
-      );
+      });
       print('Hostel data updated successfully');
     } catch (e) {
       print('Failed to update hostel data: $e');
@@ -87,8 +86,10 @@ class _HostelChangePageState extends State<HostelChangePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Apply for Hostel Change",
-          style: TextStyle(color: Colors.white),),
+        title: const Text(
+          "Allocate hostel",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xff3b3e72),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -97,21 +98,11 @@ class _HostelChangePageState extends State<HostelChangePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Current Hostel: ${widget.currentHostel['currentHostel']['hostelName']}",
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-
             DropdownButton<String>(
               hint: const Text('Select Hostel'),
               value: selectedHostel,
               isExpanded: true,
-              items: hostels.keys
-                  .where((entry) =>
-                      hostels[entry]['name'] !=
-                      widget.currentHostel['currentHostel']['hostelName'])
-                  .map((String hostelKey) {
+              items: hostels.keys.map((String hostelKey) {
                 return DropdownMenuItem<String>(
                   value: hostelKey,
                   child: Text(hostels[hostelKey]['name']),
@@ -181,25 +172,26 @@ class _HostelChangePageState extends State<HostelChangePage> {
                         if (hostels[selectedHostel]!['floors'][selectedFloor]
                                 ['wings'][selectedWing]['vacancies'] >
                             0) {
-                          var uid = FirebaseAuth.instance.currentUser?.uid;
-                          print(
-                              'uid $selectedHostel $selectedWing $selectedFloor');
-                          updateHostelData(selectedHostel!, selectedWing!,
-                              selectedFloor!, uid!);
+                          // Decrease total vacancies for the selected hostel
+                          hostels[selectedHostel]!['totalVacancies']--;
 
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text(
-                                    'Application of hostel changed applied successfully!')),
-                          );
+                          // Decrease vacancies for the selected floor
+                          hostels[selectedHostel]!['floors'][selectedFloor]
+                              ['vacancies']--;
+
+                          // Decrease vacancies for the selected wing
+                          hostels[selectedHostel]!['floors'][selectedFloor]
+                              ['wings'][selectedWing]['vacancies']--;
+
+                          print("Update hostel data: $hostels");
+                          updateHostelData(selectedHostel!, selectedWing!,
+                              selectedFloor!, widget.uid);
                           Navigator.pop(context);
-                        } else {
-                          print("no vacancy");
                         }
                       });
                     }
                   : null, // Disable button if no hostel or wing is selected,
-              child: const Text("Apply for Change"),
+              child: const Text("Register the hostel"),
             ),
             // Submit button
           ],
