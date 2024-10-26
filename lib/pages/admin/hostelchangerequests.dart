@@ -109,8 +109,9 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hostel Change Requests'),
-        backgroundColor: Colors.deepPurpleAccent, // AppBar color
+        title: const Text('Hostel Change Requests',
+          style: TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72), // AppBar color
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -257,18 +258,30 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
         },
         'newHostel': FieldValue.delete(),
       });
-      var userBox = await Hive.openBox('userBox');
-      await userBox.put('currentHostel', {
-        'currentHostel': {
-          'hostelId': hostelId,
-          'hostelName': updatedHostelData[hostelId]['name'],
-          'wingId': wingId,
-          'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
-              [wingId]['name'],
-          'floorId': floorId,
-          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]['wings']
-              [wingId]['name'],
-        },
+      DocumentReference docRef = FirebaseFirestore.instance
+          .collection('hostel_change_requests')
+          .doc(userId);
+
+      // Update the 'vacancies' field
+      await docRef.update({
+        'status': statusmsg, // Set the field to the new value
+      }).then((_) {
+        print("Field updated successfully!");
+      }).catchError((error) {
+        print("Error updating field: $error");
+      });
+      print('Hostel data updated successfully');
+    } catch (e) {
+      print('Failed to update hostel data: $e');
+    }
+  }
+  Future<void> rejectHostel(String userId, String statusmsg) async {
+    //firestore init
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    try {
+      // Update the current hostel in the user's document
+      await firestore.collection('users').doc(userId).update({
+        'newHostel': FieldValue.delete(),
       });
       DocumentReference docRef = FirebaseFirestore.instance
           .collection('hostel_change_requests')
@@ -378,7 +391,8 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Reject logic
+                   rejectHostel(request['request']['userId'], "rejected");
+                   Navigator.pop(context);
                   },
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(Colors.red),

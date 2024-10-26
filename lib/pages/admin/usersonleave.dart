@@ -27,7 +27,9 @@ class LeaveApplicationsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leave Applications'),
+        title: const Text('Leave Applications',
+          style: TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72),
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: _getLeaveApplicationsStream(),

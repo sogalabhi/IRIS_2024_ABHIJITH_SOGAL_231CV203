@@ -7,7 +7,9 @@ class UserManagementPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('User Management'),
+        title: const Text('User Management',
+          style: TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),

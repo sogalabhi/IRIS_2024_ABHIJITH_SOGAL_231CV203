@@ -5,6 +5,7 @@ import 'package:hive/hive.dart';
 import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/login.dart';
 import 'package:iris_app/pages/user/applyleave.dart';
+import 'package:lottie/lottie.dart';
 
 import 'hostelchange.dart';
 import 'hostelregisteration.dart';
@@ -30,9 +31,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    // loadUserData();
     getData();
-
     super.initState();
   }
 
@@ -72,12 +71,18 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    getData();
     if (userData == null) {
-      return const CircularProgressIndicator(); // Show loading indicator while fetching data
+      return Scaffold(
+          body: Center(
+        child: Lottie.asset('assets/lottie/loadinglottie.json'),
+      )); // Show loading indicator while fetching data
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("User Dashboard"),
+        title: const Text("User Dashboard",
+          style: TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72),
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -132,48 +137,21 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () async {
                     if (userData?['currentHostel']['hostelName'].isEmpty) {
                       // Navigate to the registration page
-                      final result = await Navigator.push(
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) =>
                                 const HostelRegistrationPage()),
                       );
-                      if (result != null) {
-                        setState(() {
-                          userData?['currentHostel']['hostelName'] =
-                              result['hostel']; // Update hostel after change
-                          userData?['currentHostel']['wingName'] =
-                              result['wing']; // Update hostel after change
-                          userData?['currentHostel']['floorNumber'] =
-                              result['floor']; // Update hostel after change
-                        });
-                      }
+                      
                     } else {
-                      // Navigate to the hostel change application page
-                      print("currenthostel $userData");
-                      final newHostel = await Navigator.push(
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (context) =>
                               HostelChangePage(currentHostel: userData!),
                         ),
                       );
-                      if (newHostel != null && newHostel == 'refresh') {
-                        setState(() {
-                          // Refresh logic here
-                          print("Refreshed on return from next screen!");
-                        });
-                      }
-                      if (newHostel != null) {
-                        setState(() {
-                          userData?['currentHostel']['hostelName'] =
-                              newHostel['hostel']; // Update hostel after change
-                          userData?['currentHostel']['wingName'] =
-                              newHostel['wing']; // Update hostel after change
-                          userData?['currentHostel']['floorNumber'] =
-                              newHostel['floor']; // Update hostel after change
-                        });
-                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -185,6 +163,7 @@ class _HomePageState extends State<HomePage> {
                       ? "Register for Hostel"
                       : "Apply for Hostel Change"),
                 ),
+
               if (userData?['newHostel'] != null)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

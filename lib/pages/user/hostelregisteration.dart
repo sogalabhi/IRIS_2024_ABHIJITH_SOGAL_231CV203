@@ -5,7 +5,6 @@ import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class HostelRegistrationPage extends StatefulWidget {
-
   const HostelRegistrationPage({super.key});
   @override
   State<HostelRegistrationPage> createState() => _HostelRegistrationPageState();
@@ -66,8 +65,7 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
           'wingName': updatedHostelData[hostelId]['floors'][floorId]['wings']
               [wingId]['name'],
           'floorId': floorId,
-          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]
-              ['name'],
+          'floorNumber': updatedHostelData[hostelId]['floors'][floorId]['name'],
         },
       });
       var userBox = await Hive.openBox('userBox');
@@ -99,7 +97,11 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Register hostel"),
+        title: const Text(
+          "Register hostel",
+          style: TextStyle(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xff3b3e72),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -110,8 +112,7 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
               hint: const Text('Select Hostel'),
               value: selectedHostel,
               isExpanded: true,
-              items: hostels.keys
-                  .map((String hostelKey) {
+              items: hostels.keys.map((String hostelKey) {
                 return DropdownMenuItem<String>(
                   value: hostelKey,
                   child: Text(hostels[hostelKey]['name']),
@@ -192,18 +193,11 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
                           hostels[selectedHostel]!['floors'][selectedFloor]
                               ['wings'][selectedWing]['vacancies']--;
 
-
                           print("Update hostel data: $hostels");
                           var uid = FirebaseAuth.instance.currentUser?.uid;
                           updateHostelData(selectedHostel!, selectedWing!,
                               selectedFloor!, uid!);
-                          Navigator.pop(context, {
-                            'hostel': hostels[selectedHostel]!['name'],
-                            'wing': hostels[selectedHostel]!['floors']
-                                [selectedFloor]['wings'][selectedWing]['name'],
-                            'floor': hostels[selectedHostel]!['floors']
-                                [selectedFloor]['name']
-                          });
+                          Navigator.pop(context);
                         }
                       });
                     }

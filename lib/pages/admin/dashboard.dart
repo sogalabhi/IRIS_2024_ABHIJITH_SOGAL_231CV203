@@ -15,7 +15,7 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
-  int? users = 0, hostels = 0, leaveApplications = 0;
+  int? users = 0, hostels = 0, leaveApplications = 0, hostelrequests = 0;
   void getDocumentCount() async {
     // Get the collection reference
     QuerySnapshot snapshot1 =
@@ -24,21 +24,27 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         await FirebaseFirestore.instance.collection('hostels').get();
     QuerySnapshot snapshot3 =
         await FirebaseFirestore.instance.collection('leave_applications').get();
+    QuerySnapshot snapshot4 = await FirebaseFirestore.instance
+        .collection('hostel_change_requests')
+        .where('status', isEqualTo: 'pending')
+        .get();
     setState(() {
       users = snapshot1.docs.length;
       hostels = snapshot2.docs.length;
       leaveApplications = snapshot3.docs.length;
+      hostelrequests = snapshot4.docs.length;
     });
   }
 
   @override
   void initState() {
-    getDocumentCount();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    
+    getDocumentCount();
     void signout() async {
       await FirebaseAuth.instance.signOut();
       Navigator.pushReplacement(
@@ -47,14 +53,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Admin Dashboard"),
+        title: const Text(
+          "Admin Dashboard",
+          style: TextStyle(color: Colors.white),
+        ),
         actions: [
           ElevatedButton(
             onPressed: signout,
             child: const Icon(Icons.logout),
           ),
         ],
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color(0xff3b3e72),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -94,10 +103,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 leading: const Icon(Icons.notification_important,
                     color: Colors.orange),
                 title: const Text("Pending Hostel Change Requests"),
-                subtitle: const Text("3 requests awaiting approval"),
+                subtitle: Text("$hostelrequests requests awaiting approval"),
                 trailing: const Icon(Icons.arrow_forward),
                 onTap: () {
-                  Navigator.push(
+                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => const HostelChangeRequestsPage(),
@@ -169,9 +178,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
             const SizedBox(height: 16),
             Card(
-              color: Colors.blue[50],
+              color: Colors.deepPurple[50],
               child: const ListTile(
-                leading: Icon(Icons.info, color: Colors.blue),
+                leading: Icon(Icons.info, color: Color(0xff3b3e72)),
                 title: Text("Vacancies: 42 / Total Capacity: 60"),
                 subtitle: Text("Hostel 1 - Wing A, Wing B, Wing C"),
               ),
@@ -191,7 +200,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 40, color: Colors.blue),
+            Icon(icon, size: 40, color: const Color(0xff3b3e72)),
             const SizedBox(height: 8),
             Text(
               title,

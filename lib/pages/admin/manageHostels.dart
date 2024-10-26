@@ -46,7 +46,9 @@ class _HostelManagementPageState extends State<HostelManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hostel List'),
+        title: const Text('Hostel List',
+          style: TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72),
       ),
       floatingActionButton: GestureDetector(
           onTap: () {
@@ -106,7 +108,7 @@ class _HostelManagementPageState extends State<HostelManagementPage> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            icon: const Icon(Icons.edit, color: Color(0xff3b3e72)),
                             onPressed: () => editHostel(hostelData, hostelId),
                           ),
                           IconButton(

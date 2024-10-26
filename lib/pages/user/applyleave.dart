@@ -10,23 +10,31 @@ class LeaveApplicationForm extends StatefulWidget {
 }
 
 class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
+  DateTime? startDate;
+  DateTime? endDate;
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _fromDateController = TextEditingController();
   final TextEditingController _toDateController = TextEditingController();
   final TextEditingController _messageController = TextEditingController();
 
   // Function to pick date
-  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(BuildContext context,
+      TextEditingController controller, String date) async {
     DateTime? selectedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(2000),
+      firstDate: DateTime.now(),
       lastDate: DateTime(2100),
     );
 
     if (selectedDate != null) {
       setState(() {
         controller.text = "${selectedDate.toLocal()}".split(' ')[0];
+        if (date == 'start') {
+          startDate = selectedDate;
+        } else {
+          endDate = selectedDate;
+        }
       });
     }
   }
@@ -34,27 +42,33 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
   // Function to submit the form and upload data to Firestore
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      // Get the current user's UID
+// Get the current user's UID
       final User? user = FirebaseAuth.instance.currentUser;
-      final uid = user?.uid ?? 'default_uid'; // Replace 'default_uid' with actual logic as per your needs
+      final uid = user?.uid ??
+          'default_uid'; // Replace 'default_uid' with actual logic as per your needs
 
       // Data to upload to Firestore
       final Map<String, dynamic> leaveApplication = {
-        'fromDate': _fromDateController.text,
-        'toDate': _toDateController.text,
+        'fromDate': startDate,
+        'toDate': endDate,
         'message': _messageController.text,
         'uid': uid,
       };
 
       try {
         // Upload to Firestore
-        await FirebaseFirestore.instance.collection('leave_applications').add(leaveApplication);
+
+        await FirebaseFirestore.instance
+            .collection('leave_applications')
+            .add(leaveApplication);
 
         // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Leave Application Submitted')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Leave Application Submitted')));
       } catch (e) {
         // Handle Firestore errors
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     }
   }
@@ -62,7 +76,9 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Leave Application Form')),
+      appBar: AppBar(title: const Text('Leave Application Form',
+          style: TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72),),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -74,7 +90,7 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
                 controller: _fromDateController,
                 decoration: const InputDecoration(labelText: 'From Date'),
                 readOnly: true,
-                onTap: () => _selectDate(context, _fromDateController),
+                onTap: () => _selectDate(context, _fromDateController, 'start'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please select a from date';
@@ -89,7 +105,7 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
                 controller: _toDateController,
                 decoration: const InputDecoration(labelText: 'To Date'),
                 readOnly: true,
-                onTap: () => _selectDate(context, _toDateController),
+                onTap: () => _selectDate(context, _toDateController, 'end'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please select a to date';
@@ -115,7 +131,15 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
 
               // Submit Button
               ElevatedButton(
-                onPressed: _submitForm,
+                onPressed: () {
+                  print(startDate);
+                  if (startDate!.isAfter(endDate!)) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Invalid from to date')));
+                  } else {
+                    _submitForm();
+                  }
+                },
                 child: const Text('Submit'),
               ),
             ],

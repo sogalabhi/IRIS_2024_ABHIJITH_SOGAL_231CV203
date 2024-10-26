@@ -42,10 +42,6 @@ class _LoginPageState extends State<LoginPage> {
               MaterialPageRoute(builder: (context) => const HomePage()));
         }
 
-        // You can store additional user details in Firestore if needed
-
-        // Show a success message or navigate to another page
-
         // Clear the fields
         _nameController.clear();
         _rollNoController.clear();
@@ -64,14 +60,19 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login Account'),
+        title: const Text('Login'),
+        centerTitle: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(32.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
+              Image.network("https://cdn.iris.nitk.ac.in/iris%20logo2.png"),
+              const SizedBox(
+                height: 20,
+              ),
               TextFormField(
                 controller: _emailController,
                 decoration: const InputDecoration(labelText: 'Email'),
@@ -98,11 +99,11 @@ class _LoginPageState extends State<LoginPage> {
                 },
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
+              FilledButton(
                 onPressed: _login,
                 child: const Text('Login'),
               ),
-              ElevatedButton(
+              TextButton(
                 onPressed: () {
                   Navigator.pushReplacement(
                     context,

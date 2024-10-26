@@ -87,7 +87,9 @@ class _HostelChangePageState extends State<HostelChangePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Apply for Hostel Change"),
+        title: const Text("Apply for Hostel Change",
+          style: TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -178,32 +180,6 @@ class _HostelChangePageState extends State<HostelChangePage> {
                         if (hostels[selectedHostel]!['floors'][selectedFloor]
                                 ['wings'][selectedWing]['vacancies'] >
                             0) {
-                          // Decrease total vacancies for the selected hostel
-                          // hostels[selectedHostel]!['totalVacancies']--;
-
-                          // // Decrease vacancies for the selected floor
-                          // hostels[selectedHostel]!['floors'][selectedFloor]
-                          //     ['vacancies']--;
-
-                          // // Decrease vacancies for the selected wing
-                          // hostels[selectedHostel]!['floors'][selectedFloor]
-                          //     ['wings'][selectedWing]['vacancies']--;
-
-                          // // INcrease vacancies in old hostel floor wing
-                          // var oldhostelid =
-                          //     widget.currentHostel['currentHostel']['hostelId'];
-                          // var oldfloorid =
-                          //     widget.currentHostel['currentHostel']['floorId'];
-                          // var oldwingid =
-                          //     widget.currentHostel['currentHostel']['wingId'];
-
-                          // hostels[oldhostelid]!['totalVacancies']++;
-                          // hostels[oldhostelid]!['floors'][oldfloorid]
-                          //     ['vacancies']++;
-                          // hostels[oldhostelid]!['floors'][oldfloorid]['wings']
-                          //     [oldwingid]['vacancies']++;
-
-                          // print("Update hostel data: $hostels");
                           var uid = FirebaseAuth.instance.currentUser?.uid;
                           print(
                               'uid $selectedHostel $selectedWing $selectedFloor');
@@ -215,7 +191,6 @@ class _HostelChangePageState extends State<HostelChangePage> {
                                 content: Text(
                                     'Application of hostel changed applied successfully!')),
                           );
-
                           Navigator.pop(context);
                         } else {
                           print("no vacancy");

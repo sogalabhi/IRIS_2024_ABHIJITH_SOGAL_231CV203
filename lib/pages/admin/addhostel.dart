@@ -73,7 +73,9 @@ class _CreateHostelPageState extends State<CreateHostelPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.hostelData != null ? "Edit Hostel" : "Add Hostel"),
+        title: Text(widget.hostelData != null ? "Edit Hostel" : "Add Hostel",
+          style: const TextStyle(color: Colors.white),),
+        backgroundColor: const Color(0xff3b3e72),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
