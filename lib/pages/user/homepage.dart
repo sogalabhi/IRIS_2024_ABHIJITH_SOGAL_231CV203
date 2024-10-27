@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/login.dart';
@@ -65,8 +66,7 @@ class _HomePageState extends State<HomePage> {
   void _signout() async {
     await FirebaseAuth.instance.signOut();
     if (!mounted) return;
-    Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => const LoginPage()));
+    context.go('/login');
   }
 
   @override
@@ -80,8 +80,10 @@ class _HomePageState extends State<HomePage> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text("User Dashboard",
-          style: TextStyle(color: Colors.white),),
+        title: const Text(
+          "User Dashboard",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xff3b3e72),
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
@@ -138,13 +140,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () async {
                     if (userData?['currentHostel']['hostelName'].isEmpty) {
                       // Navigate to the registration page
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const HostelRegistrationPage()),
-                      );
-                      
+                      context.go('/hostelregister');
                     } else {
                       await Navigator.push(
                         context,
@@ -193,10 +189,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => const LeaveApplicationForm()));
+                  context.go('/applyleave');
                 },
                 child: const Text('Apply for leave'),
               ),

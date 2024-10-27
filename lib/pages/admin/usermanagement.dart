@@ -12,12 +12,14 @@ class UserManagementPage extends StatefulWidget {
 
 class _UserManagementPageState extends State<UserManagementPage> {
   Stream<QuerySnapshot<Map<String, dynamic>>> getUsers() {
-    return FirebaseFirestore.instance.collection('users').snapshots();
+    return FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isNotEqualTo: 'admin@gmail.com')
+        .snapshots();
   }
 
   @override
   Widget build(BuildContext context) {
-    getUsers();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -42,7 +44,7 @@ class _UserManagementPageState extends State<UserManagementPage> {
 
           // If there are no applications
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('No Leave Applications Found'));
+            return const Center(child: Text('No Users Found'));
           }
 
           // If data is available, display in a ListView

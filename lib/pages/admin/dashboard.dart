@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:iris_app/pages/admin/hostelchangerequests.dart';
 import 'package:iris_app/pages/admin/managehostels.dart';
 import 'package:iris_app/pages/admin/usermanagement.dart';
@@ -19,8 +20,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   int? users = 0, hostels = 0, leaveApplications = 0, hostelrequests = 0;
   void getDocumentCount() async {
     // Get the collection reference
-    QuerySnapshot snapshot1 =
-        await FirebaseFirestore.instance.collection('users').get();
+    QuerySnapshot snapshot1 = await FirebaseFirestore.instance
+        .collection('users')
+        .where('email', isNotEqualTo: 'admin@gmail.com')
+        .get();
     QuerySnapshot snapshot2 =
         await FirebaseFirestore.instance.collection('hostels').get();
     QuerySnapshot snapshot3 =
@@ -47,8 +50,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     getDocumentCount();
     void signout() async {
       await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const LoginPage()));
+      GoRouter.of(context).replace('/login');
     }
 
     return Scaffold(
@@ -85,30 +87,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   children: [
                     buildOverviewCard("Total Hostels", '$hostels', Icons.home,
                         () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const HostelManagementPage(),
-                        ),
-                      );
+                      context.go('/hostelmanagement');
                     }),
                     buildOverviewCard(
                         "Total hostellites", '$users', Icons.location_city, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const UserManagementPage(),
-                        ),
-                      );
+                      context.go('/usermanagement');
                     }),
                     buildOverviewCard("Leave applications",
                         '$leaveApplications', Icons.event_seat, () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const LeaveApplicationsList(),
-                        ),
-                      );
+                      context.go('/leaveapplicationlist');
                     }),
                   ],
                 ),
@@ -134,13 +121,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             Text("$hostelrequests requests awaiting approval"),
                         trailing: const Icon(Icons.arrow_forward),
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  const HostelChangeRequestsPage(),
-                            ),
-                          );
+                          GoRouter.of(context).push('/hostelchangelist');
                         },
                       ),
                     ),
@@ -161,22 +142,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     children: [
                       buildQuickLinkButton(
                           "Manage Hostels", Icons.manage_accounts, () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HostelManagementPage(),
-                          ),
-                        );
+                        context.go('/hostelmanagement');
                       }),
                       const SizedBox(width: 10),
                       buildQuickLinkButton("Users on Leave", Icons.person_off,
                           () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LeaveApplicationsList(),
-                          ),
-                        );
+                        context.go('/leaveapplicationlist');
                       }),
                     ],
                   ),
@@ -185,23 +156,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     children: [
                       buildQuickLinkButton("Process Requests", Icons.assignment,
                           () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                const HostelChangeRequestsPage(),
-                          ),
-                        );
+                        context.go('/hostelchangelist');
                       }),
                       const SizedBox(width: 10),
                       buildQuickLinkButton("Manage Users", Icons.assignment,
                           () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const UserManagementPage(),
-                          ),
-                        );
+                       context.go('/usermanagement');
                       }),
                     ],
                   ),
