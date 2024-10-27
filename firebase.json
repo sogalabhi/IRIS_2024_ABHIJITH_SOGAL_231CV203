@@ -1,1 +1,41 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"iris-app-2024","appId":"1:573274398235:android:7c4d24962c449fb98922be","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"iris-app-2024","configurations":{"android":"1:573274398235:android:7c4d24962c449fb98922be","ios":"1:573274398235:ios:2a97d06ca30f8a008922be","macos":"1:573274398235:ios:2a97d06ca30f8a008922be","web":"1:573274398235:web:1a865a60e8d092a88922be","windows":"1:573274398235:web:5ad19bd3b78955d58922be"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "iris-app-2024",
+          "appId": "1:573274398235:android:7c4d24962c449fb98922be",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "iris-app-2024",
+          "configurations": {
+            "android": "1:573274398235:android:7c4d24962c449fb98922be",
+            "ios": "1:573274398235:ios:2a97d06ca30f8a008922be",
+            "macos": "1:573274398235:ios:2a97d06ca30f8a008922be",
+            "web": "1:573274398235:web:1a865a60e8d092a88922be",
+            "windows": "1:573274398235:web:5ad19bd3b78955d58922be"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

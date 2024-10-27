@@ -7,7 +7,9 @@ class LeaveApplicationsList extends StatelessWidget {
   // This function returns a stream of snapshots from Firestore
   Stream<QuerySnapshot<Map<String, dynamic>>> _getLeaveApplicationsStream() {
     return FirebaseFirestore.instance
-        .collection('leave_applications')
+        .collection("leave_applications")
+        .where('fromDate', isGreaterThanOrEqualTo: DateTime.now().subtract(const Duration(days:1)))
+        .orderBy("fromDate", descending: false)
         .snapshots();
   }
 
@@ -27,8 +29,10 @@ class LeaveApplicationsList extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leave Applications',
-          style: TextStyle(color: Colors.white),),
+        title: const Text(
+          'Leave Applications',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xff3b3e72),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -87,9 +91,11 @@ class LeaveApplicationsList extends StatelessWidget {
                   // User data fetched successfully
                   final Map<String, dynamic> userData = userSnapshot.data!;
                   final String userName = userData['name'] ?? 'Unknown User';
-                  final String rollNumber = userData['rollNumber'] ?? 'Unknown rollNumber';
-                  final String hostelName =
-                      userData['currentHostel']['hostelName'] ?? 'Unknown Hostel';
+                  final String rollNumber =
+                      userData['rollNumber'] ?? 'Unknown rollNumber';
+                  final String hostelName = userData['currentHostel']
+                          ['hostelName'] ??
+                      'Unknown Hostel';
 
                   // Display leave application data along with user details in a Card
                   return Card(
@@ -117,13 +123,13 @@ class LeaveApplicationsList extends StatelessWidget {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "From: ${applicationData['fromDate'] ?? 'N/A'}",
+                            "From: ${(applicationData['fromDate'] as Timestamp).toDate().toString().substring(0,10)}",
                             style: const TextStyle(
                                 fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            "To: ${applicationData['toDate'] ?? 'N/A'}",
+                            "To: ${(applicationData['toDate'] as Timestamp).toDate().toString().substring(0,10)}",
                             style: const TextStyle(fontSize: 16),
                           ),
                           const SizedBox(height: 8),
