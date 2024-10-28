@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 import 'package:googleapis_auth/auth_io.dart';
 
 Future<void> sendNotificationV1({
@@ -34,25 +35,26 @@ Future<void> sendNotificationV1({
   try {
     const url =
         'https://fcm.googleapis.com/v1/projects/$projectId/messages:send';
+    if (deviceToken != '') {
+      final response = await client.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'message': {
+            'token': deviceToken,
+            'notification': {
+              'title': title,
+              'body': body,
+            },
+          }
+        }),
+      );
 
-    final response = await client.post(
-      Uri.parse(url),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'message': {
-          'token': deviceToken,
-          'notification': {
-            'title': title,
-            'body': body,
-          },
-        }
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      print('Notification sent successfully via FCM HTTP v1');
-    } else {
-      print('Failed to send notification: ${response.body}');
+      if (response.statusCode == 200) {
+        print('Notification sent successfully via FCM HTTP v1');
+      } else {
+        print('Failed to send notification: ${response.body}');
+      }
     }
   } catch (e) {
     print('Error sending notification: $e');
@@ -70,7 +72,8 @@ Future<String> getTokenByEmail(String email) async {
         .get();
 
     if (querySnapshot.docs.isNotEmpty) {
-      final fcmToken = querySnapshot.docs.first.data()['fcmToken'];
+      var fcmToken = querySnapshot.docs.first.data()['fcmToken'];
+      fcmToken ??= '';
       print('fcmToken: $fcmToken');
       return fcmToken;
     } else {
@@ -81,4 +84,3 @@ Future<String> getTokenByEmail(String email) async {
   }
   return '';
 }
-

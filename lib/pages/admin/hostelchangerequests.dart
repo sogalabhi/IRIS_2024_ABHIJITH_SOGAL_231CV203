@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:iris_app/api/send_fcm.dart';
+import 'package:iris_app/utils/send_fcm.dart';
 import 'package:iris_app/utils/getuserbyuid.dart';
 
 class HostelChangeRequestsPage extends StatefulWidget {

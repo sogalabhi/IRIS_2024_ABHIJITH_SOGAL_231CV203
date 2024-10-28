@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:iris_app/utils/send_fcm.dart';
+import 'package:iris_app/utils/getuserbyuid.dart';
 
 class HostelAllocationPage extends StatefulWidget {
   final Map userData;
   final String uid;
-  const HostelAllocationPage({super.key, required this.userData, required this.uid});
+  const HostelAllocationPage(
+      {super.key, required this.userData, required this.uid});
   @override
   State<HostelAllocationPage> createState() => _HostelAllocationPageState();
 }
@@ -70,6 +73,16 @@ class _HostelAllocationPageState extends State<HostelAllocationPage> {
       print('Hostel data updated successfully');
     } catch (e) {
       print('Failed to update hostel data: $e');
+    }
+    var user = await getUserDetails(userId);
+    String fcmToken = await getTokenByEmail(user?['email']);
+    if (fcmToken != null) {
+//Send notification
+      await sendNotificationV1(
+        title: "Update on hostel status",
+        body: "Admin has updated your hostel details. Click to check",
+        deviceToken: fcmToken,
+      );
     }
   }
 

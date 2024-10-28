@@ -13,7 +13,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 class FirebaseApi {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
- 
+
   final _firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> initNotifications() async {
@@ -86,7 +86,6 @@ class FirebaseApi {
       // Navigate to a specific screen or perform an action
     });
   }
-  sendNotificaton(){
-    
-  }
+
+  sendNotificaton() {}
 }

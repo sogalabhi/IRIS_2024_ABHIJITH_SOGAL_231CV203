@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:iris_app/utils/send_fcm.dart';
 import 'package:iris_app/pages/admin/allocatehostel.dart';
+import 'package:iris_app/utils/getuserbyuid.dart';
 
 class UserManagementPage extends StatefulWidget {
   const UserManagementPage({super.key});
@@ -81,6 +83,14 @@ class _UserManagementPageState extends State<UserManagementPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Deallocated successfully!')),
       );
+      var user = await getUserDetails(uid);
+      String fcmToken = await getTokenByEmail(user?['email']);
+      //Send notification
+      await sendNotificationV1(
+        title: "Update on hostel status",
+        body: "Admin has deallocated your hostel",
+        deviceToken: fcmToken,
+      );
     }
 
     return Card(
@@ -136,12 +146,13 @@ class _UserManagementPageState extends State<UserManagementPage> {
                         },
                         child: const Text('Allocate'),
                       ),
-                    GestureDetector(
-                      onDoubleTap: () {
-                        deallocate();
-                      },
-                      child: const Text('Double tap to deallocate'),
-                    ),
+                    if (user['currentHostel']['hostelName'] != '')
+                      GestureDetector(
+                        onDoubleTap: () {
+                          deallocate();
+                        },
+                        child: const Text('Double tap to deallocate'),
+                      ),
                   ],
                 ),
               ],

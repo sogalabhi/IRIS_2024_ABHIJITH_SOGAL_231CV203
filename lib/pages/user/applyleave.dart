@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:iris_app/api/send_fcm.dart';
+import 'package:iris_app/utils/send_fcm.dart';
 
 class LeaveApplicationForm extends StatefulWidget {
   const LeaveApplicationForm({super.key});
