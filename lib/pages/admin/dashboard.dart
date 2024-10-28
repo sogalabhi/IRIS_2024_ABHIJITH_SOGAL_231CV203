@@ -50,7 +50,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     getDocumentCount();
     void signout() async {
       await FirebaseAuth.instance.signOut();
-      GoRouter.of(context).replace('/login');
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (context) => const LoginPage()));
     }
 
     return Scaffold(
@@ -87,15 +88,27 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   children: [
                     buildOverviewCard("Total Hostels", '$hostels', Icons.home,
                         () {
-                      context.go('/hostelmanagement');
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const HostelManagementPage()));
                     }),
                     buildOverviewCard(
                         "Total hostellites", '$users', Icons.location_city, () {
-                      context.go('/usermanagement');
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const UserManagementPage()));
                     }),
                     buildOverviewCard("Leave applications",
                         '$leaveApplications', Icons.event_seat, () {
-                      context.go('/leaveapplicationlist');
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const LeaveApplicationsList()));
                     }),
                   ],
                 ),
@@ -121,7 +134,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             Text("$hostelrequests requests awaiting approval"),
                         trailing: const Icon(Icons.arrow_forward),
                         onTap: () {
-                          GoRouter.of(context).push('/hostelchangelist');
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HostelChangeRequestsPage()));
                         },
                       ),
                     ),
@@ -142,12 +158,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     children: [
                       buildQuickLinkButton(
                           "Manage Hostels", Icons.manage_accounts, () {
-                        context.go('/hostelmanagement');
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const HostelManagementPage()));
                       }),
                       const SizedBox(width: 10),
                       buildQuickLinkButton("Users on Leave", Icons.person_off,
                           () {
-                        context.go('/leaveapplicationlist');
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const LeaveApplicationsList()));
                       }),
                     ],
                   ),
@@ -156,12 +180,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     children: [
                       buildQuickLinkButton("Process Requests", Icons.assignment,
                           () {
-                        context.go('/hostelchangelist');
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const LeaveApplicationsList()));
                       }),
                       const SizedBox(width: 10),
                       buildQuickLinkButton("Manage Users", Icons.assignment,
                           () {
-                       context.go('/usermanagement');
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    const UserManagementPage()));
                       }),
                     ],
                   ),

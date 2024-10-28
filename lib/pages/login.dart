@@ -53,9 +53,9 @@ class _LoginPageState extends State<LoginPage> {
           const SnackBar(content: Text('Logined successfully!')),
         );
         if (_emailController.text.trim() == "admin@gmail.com") {
-          context.go('/admindashboard');
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>const AdminDashboardPage()));
         } else {
-          context.go('/');
+          Navigator.push(context, MaterialPageRoute(builder: (context)=>const HomePage()));
         }
 
         // Clear the fields
@@ -123,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    context.go('/register');
+                    Navigator.push(context, MaterialPageRoute(builder: (context)=>const RegisterPage()));
                   },
                   child: const Text('Go to register page'),
                 ),

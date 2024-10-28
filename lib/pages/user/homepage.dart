@@ -64,9 +64,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _signout() async {
-    await FirebaseAuth.instance.signOut();
-    if (!mounted) return;
-    context.go('/login');
+    await FirebaseAuth.instance.signOut();Navigator.push(context, MaterialPageRoute(builder: (context)=>const LoginPage()));
   }
 
   @override
@@ -140,7 +138,7 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () async {
                     if (userData?['currentHostel']['hostelName'].isEmpty) {
                       // Navigate to the registration page
-                      context.go('/hostelregister');
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=>const HostelRegistrationPage()));
                     } else {
                       await Navigator.push(
                         context,
@@ -189,7 +187,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ElevatedButton(
                 onPressed: () {
-                  context.go('/applyleave');
+                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const LeaveApplicationForm()));
                 },
                 child: const Text('Apply for leave'),
               ),
