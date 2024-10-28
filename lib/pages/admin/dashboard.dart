@@ -1,13 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:iris_app/pages/admin/hostelchangerequests.dart';
 import 'package:iris_app/pages/admin/managehostels.dart';
 import 'package:iris_app/pages/admin/usermanagement.dart';
 import 'package:iris_app/pages/admin/usersonleave.dart';
 import 'package:iris_app/pages/login.dart';
-import 'package:iris_app/pages/user/applyleave.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});

@@ -57,7 +57,6 @@ class _UserManagementPageState extends State<UserManagementPage> {
               final Map<String, dynamic> userData =
                   users[index].data() as Map<String, dynamic>;
               String uid = users[index].id;
-              ;
               return userCard(userData, context, uid);
             },
           );

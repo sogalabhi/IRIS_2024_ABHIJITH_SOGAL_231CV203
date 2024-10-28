@@ -4,7 +4,6 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
-
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("title: ${message.notification?.title}");
   print("body: ${message.notification?.body}");
@@ -13,38 +12,18 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class FirebaseApi {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
-  void showFlutterNotification(RemoteMessage message) {
-    RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
+      FlutterLocalNotificationsPlugin();
+ 
+  final _firebaseMessaging = FirebaseMessaging.instance;
 
-    if (notification != null && android != null) {
-      const AndroidNotificationDetails androidPlatformChannelSpecifics =
-      AndroidNotificationDetails(
-        'high_importance_channel', // Channel ID
-        'High Importance Notifications', // Channel name
-        channelDescription: 'This channel is used for important notifications.',
-        importance: Importance.max,
-        priority: Priority.high,
-      );
-      const NotificationDetails platformChannelSpecifics = NotificationDetails(
-        android: androidPlatformChannelSpecifics,
-      );
-      flutterLocalNotificationsPlugin.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        platformChannelSpecifics,
-      );
-    }
-  }
-  Future<void> setupFlutterNotifications() async {
+  Future<void> initNotifications() async {
     // Android initialization settings
     const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     // Combine initialization settings
-    const InitializationSettings initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
       android: initializationSettingsAndroid,
     );
 
@@ -52,20 +31,11 @@ class FirebaseApi {
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
     // Request permissions for iOS
-    await FirebaseMessaging.instance.requestPermission(
+    await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
-
-    // Listen to foreground messages
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      showFlutterNotification(message);
-    });
-  }
-  final _firebaseMessaging = FirebaseMessaging.instance;
-  Future<void> initNotifications() async {
-    await _firebaseMessaging.requestPermission();
     final fCMToken = await _firebaseMessaging.getToken();
 
     String constructFCMPayload(String? token) {
@@ -101,7 +71,9 @@ class FirebaseApi {
       }
     }
 
+    sendPushMessage();
     print('Token $fCMToken');
+
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -113,7 +85,8 @@ class FirebaseApi {
       print('Message clicked! ${message.notification?.title}');
       // Navigate to a specific screen or perform an action
     });
+  }
+  sendNotificaton(){
     
-    sendPushMessage();
   }
 }

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:iris_app/api/send_fcm.dart';
+import 'package:iris_app/utils/getuserbyuid.dart';
 
 class HostelChangePage extends StatefulWidget {
   final Map currentHostel;
@@ -75,6 +77,17 @@ class _HostelChangePageState extends State<HostelChangePage> {
     } catch (e) {
       print('Failed to update hostel data: $e');
     }
+    String fcmToken = await getTokenByEmail("admin@gmail.com");
+    //Send notification
+    
+    var user = await getUserDetails(userId);
+    await sendNotificationV1(
+      title: "New Hostel Change Application",
+      body:
+          "${user?['name']} has applied for hostel change to ${hostels[selectedHostel]!['name']}",
+      deviceToken: fcmToken,
+    );
+    print('user: ${user?['currentHostel']['name']}');
   }
 
   @override
@@ -87,8 +100,10 @@ class _HostelChangePageState extends State<HostelChangePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Apply for Hostel Change",
-          style: TextStyle(color: Colors.white),),
+        title: const Text(
+          "Apply for Hostel Change",
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xff3b3e72),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
@@ -192,6 +207,7 @@ class _HostelChangePageState extends State<HostelChangePage> {
                                 content: Text(
                                     'Application of hostel changed applied successfully!')),
                           );
+
                           Navigator.pop(context);
                         } else {
                           print("no vacancy");

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:iris_app/api/send_fcm.dart';
 
 class LeaveApplicationForm extends StatefulWidget {
   const LeaveApplicationForm({super.key});
@@ -39,10 +40,11 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
     }
   }
 
+  
   // Function to submit the form and upload data to Firestore
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-// Get the current user's UID
+      // Get the current user's UID
       final User? user = FirebaseAuth.instance.currentUser;
       final uid = user?.uid ??
           'default_uid'; // Replace 'default_uid' with actual logic as per your needs
@@ -57,7 +59,6 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
 
       try {
         // Upload to Firestore
-
         await FirebaseFirestore.instance
             .collection('leave_applications')
             .add(leaveApplication);
@@ -65,6 +66,14 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Leave Application Submitted')));
+        String fcmToken = await getTokenByEmail("admin@gmail.com");
+        //Send notification
+        await sendNotificationV1(
+          title: "New Leave Application",
+          body:
+              "User has applied for leave from ${startDate.toString().substring(0, 10)} to ${endDate.toString().substring(0, 10)}",
+          deviceToken: fcmToken,
+        );
       } catch (e) {
         // Handle Firestore errors
         ScaffoldMessenger.of(context)
@@ -76,10 +85,14 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Leave Application Form',
-          style: TextStyle(color: Colors.white),),
+      appBar: AppBar(
+        title: const Text(
+          'Leave Application Form',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xff3b3e72),
-        iconTheme: const IconThemeData(color: Colors.white),),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -135,8 +148,8 @@ class _LeaveApplicationFormState extends State<LeaveApplicationForm> {
                 onPressed: () {
                   print(startDate);
                   if (startDate!.isAfter(endDate!)) {
-                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Invalid from to date')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Invalid from to date')));
                   } else {
                     _submitForm();
                   }

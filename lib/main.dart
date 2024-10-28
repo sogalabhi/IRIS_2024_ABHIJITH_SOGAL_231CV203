@@ -33,7 +33,6 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   await FirebaseApi().initNotifications();
-  await FirebaseApi().setupFlutterNotifications();
   runApp(const MyApp());
 }
 
@@ -121,14 +120,22 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     print("user: $user");
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff3b3e72)),
         useMaterial3: true,
       ),
-      home: const AdminDashboardPage(),
+      routerConfig: _router,
     );
+    // return MaterialApp(
+    //   title: 'Flutter Demo',
+    //   theme: ThemeData(
+    //     colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xff3b3e72)),
+    //     useMaterial3: true,
+    //   ),
+    //   home: const AdminDashboardPage(),
+    // );
   }
 }
 

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:iris_app/api/send_fcm.dart';
+import 'package:iris_app/utils/getuserbyuid.dart';
 
 class HostelChangeRequestsPage extends StatefulWidget {
   const HostelChangeRequestsPage({super.key});
@@ -109,8 +110,10 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hostel Change Requests',
-          style: TextStyle(color: Colors.white),),
+        title: const Text(
+          'Hostel Change Requests',
+          style: TextStyle(color: Colors.white),
+        ),
         backgroundColor: const Color(0xff3b3e72),
         iconTheme: const IconThemeData(color: Colors.white), // AppBar color
       ),
@@ -262,7 +265,6 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
       DocumentReference docRef = FirebaseFirestore.instance
           .collection('hostel_change_requests')
           .doc(userId);
-
       // Update the 'vacancies' field
       await docRef.update({
         'status': statusmsg, // Set the field to the new value
@@ -275,7 +277,18 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
     } catch (e) {
       print('Failed to update hostel data: $e');
     }
+
+    var user = await getUserDetails(userId);
+    String fcmToken = await getTokenByEmail(user?['email']);
+    //Send notification
+    await sendNotificationV1(
+      title: "Update on hostel change request",
+      body:
+          "Admin has approved the hostel change to ${updatedHostelData[hostelId]['name']}",
+      deviceToken: fcmToken,
+    );
   }
+
   Future<void> rejectHostel(String userId, String statusmsg) async {
     //firestore init
     FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -300,6 +313,15 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
     } catch (e) {
       print('Failed to update hostel data: $e');
     }
+    var user = await getUserDetails(userId);
+    String fcmToken = await getTokenByEmail(user?['email']);
+    //Send notification
+    await sendNotificationV1(
+      title: "Update on hostel change request",
+      body:
+          "Admin has rejected the hostel change",
+      deviceToken: fcmToken,
+    );
   }
 
   // Card Widget for Pending Requests
@@ -392,8 +414,8 @@ class _HostelChangeRequestsPageState extends State<HostelChangeRequestsPage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                   rejectHostel(request['request']['userId'], "rejected");
-                   Navigator.pop(context);
+                    rejectHostel(request['request']['userId'], "rejected");
+                    Navigator.pop(context);
                   },
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(Colors.red),

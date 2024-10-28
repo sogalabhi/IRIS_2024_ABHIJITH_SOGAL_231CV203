@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:go_router/go_router.dart';
 import 'package:iris_app/pages/admin/dashboard.dart';
 import 'package:iris_app/pages/user/homepage.dart';
 import 'package:iris_app/pages/register.dart';
@@ -21,59 +20,68 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String uid = "";
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      try {
-        // Login the user with Firebase Auth
-        UserCredential userCredential =
-            await FirebaseAuth.instance.signInWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
-        print(userCredential.user?.uid);
-        Future<void> storeUserToken() async {
-          // Get the FCM token
-          final token = await FirebaseMessaging.instance.getToken();
-
-          // Store the token in Firestore under the user's document
-          if (token != null) {
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(userCredential.user?.uid)
-                .set(
-              {'fcmToken': token},
-              SetOptions(merge: true),
-            );
-            print("token updated $storeUserToken");
-          }
-        }
-
-        storeUserToken();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Logined successfully!')),
-        );
-        if (_emailController.text.trim() == "admin@gmail.com") {
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>const AdminDashboardPage()));
-        } else {
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>const HomePage()));
-        }
-
-        // Clear the fields
-        _nameController.clear();
-        _rollNoController.clear();
-        _emailController.clear();
-        _passwordController.clear();
-      } catch (e) {
-        // Handle registration error
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Registration failed: $e')),
-        );
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
+    Future<void> _login() async {
+      if (_formKey.currentState!.validate()) {
+        try {
+          // Login the user with Firebase Auth
+          UserCredential userCredential =
+              await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
+          print(userCredential.user?.uid);
+          Future<void> storeUserToken() async {
+            // Get the FCM token
+            final token = await FirebaseMessaging.instance.getToken();
+
+            // Store the token in Firestore under the user's document
+            if (token != null) {
+              await FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(userCredential.user?.uid)
+                  .set(
+                {'fcmToken': token},
+                SetOptions(merge: true),
+              );
+              print("token updated $storeUserToken");
+            }
+          }
+
+          storeUserToken();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Logined successfully!')),
+          );
+          if (_emailController.text.trim() == "admin@gmail.com") {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const AdminDashboardPage()));
+            });
+          } else {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              Navigator.pushReplacement(
+                  context, MaterialPageRoute(builder: (_) => const HomePage()));
+            });
+          }
+
+          // Clear the fields
+          _nameController.clear();
+          _rollNoController.clear();
+          _emailController.clear();
+          _passwordController.clear();
+        } catch (e) {
+          // Handle registration error
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Registration failed: $e')),
+          );
+        }
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
@@ -123,7 +131,10 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>const RegisterPage()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const RegisterPage()));
                   },
                   child: const Text('Go to register page'),
                 ),
