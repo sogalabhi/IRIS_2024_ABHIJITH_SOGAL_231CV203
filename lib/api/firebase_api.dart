@@ -72,8 +72,6 @@ class FirebaseApi {
     }
 
     sendPushMessage();
-    print('Token $fCMToken');
-
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     // Handle foreground messages
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {

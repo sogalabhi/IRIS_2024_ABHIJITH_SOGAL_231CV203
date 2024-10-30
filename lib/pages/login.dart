@@ -2,9 +2,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/admin/dashboard.dart';
 import 'package:iris_app/pages/user/homepage.dart';
 import 'package:iris_app/pages/register.dart';
+import 'package:iris_app/utils/check_internet.dart';
+import 'package:iris_app/utils/getuserbyuid.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -15,15 +19,54 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _rollNoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   String uid = "";
+  void saveUserData(UserModel user) async {
+    var userBox = Hive.box('userBox');
+    userBox.put('user', user);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    Future<void> _login() async {
+    checkConnectivity(context);
+
+    void loadUserData(user) async {
+      var userBox = Hive.box('userBox');
+      await userBox.put(
+        'user',
+        UserModel(
+          name: user['name'],
+          email: user['email'],
+          rollNumber: user['rollNumber'],
+          currentHostel: user['currentHostel'],
+        ),
+      );
+    }
+
+    Future<void> storeUserToken(userCredential) async {
+      // Get the FCM token
+      final token = await FirebaseMessaging.instance.getToken();
+
+      // Store the token in Firestore under the user's document
+      if (token != null) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user?.uid)
+            .set(
+          {'fcmToken': token},
+          SetOptions(merge: true),
+        );
+        print("token updated $storeUserToken");
+      }
+    }
+
+    Future<void> login() async {
       if (_formKey.currentState!.validate()) {
         try {
           // Login the user with Firebase Auth
@@ -32,28 +75,16 @@ class _LoginPageState extends State<LoginPage> {
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
           );
-          print(userCredential.user?.uid);
-          Future<void> storeUserToken() async {
-            // Get the FCM token
-            final token = await FirebaseMessaging.instance.getToken();
 
-            // Store the token in Firestore under the user's document
-            if (token != null) {
-              await FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(userCredential.user?.uid)
-                  .set(
-                {'fcmToken': token},
-                SetOptions(merge: true),
-              );
-              print("token updated $storeUserToken");
-            }
-          }
+          storeUserToken(userCredential);
 
-          storeUserToken();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Logined successfully!')),
           );
+
+          var user = await getUserDetails(userCredential.user!.uid);
+          print('user $user');
+          loadUserData(user);
           if (_emailController.text.trim() == "admin@gmail.com") {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.pushReplacement(
@@ -69,8 +100,6 @@ class _LoginPageState extends State<LoginPage> {
           }
 
           // Clear the fields
-          _nameController.clear();
-          _rollNoController.clear();
           _emailController.clear();
           _passwordController.clear();
         } catch (e) {
@@ -126,7 +155,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 20),
                 FilledButton(
-                  onPressed: _login,
+                  onPressed: login,
                   child: const Text('Login'),
                 ),
                 TextButton(

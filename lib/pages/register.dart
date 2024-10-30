@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:iris_app/pages/user/homepage.dart';
+import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/login.dart';
-
-import '../models/user_model.dart';
+import 'package:iris_app/pages/user/homepage.dart';
+import 'package:iris_app/utils/check_internet.dart';
+import 'package:iris_app/utils/getuserfromhive.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -15,7 +16,6 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _rollNoController = TextEditingController();
@@ -78,17 +78,14 @@ class _RegisterPageState extends State<RegisterPage> {
             name: name,
             email: email,
             rollNumber: rollNumber,
-            currentHostel: {}));
-
-        void loadUserData() async {
-          var userBox = Hive.box('userBox');
-          print(userBox);
-          UserModel? user = userBox.get('user');
-
-          if (user != null) {
-            print("Username ${user.name}");
-          }
-        }
+            currentHostel: {
+              'floorId': '',
+              'floorNumber': '',
+              'hostelId': '',
+              'hostelName': '',
+              'wingId': '',
+              'wingName': ''
+            }));
 
         loadUserData();
         // Clear the fields
@@ -109,6 +106,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    loadUserData();
+    checkConnectivity(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Register Account'),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris_app/api/firebase_api.dart';
+import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/admin/addhostel.dart';
 import 'package:iris_app/pages/admin/allocatehostel.dart';
 import 'package:iris_app/pages/admin/dashboard.dart';
@@ -26,6 +27,8 @@ void main() async {
   await Hive.initFlutter(directory.path);
 
   // Open the box for user data
+  Hive.registerAdapter(UserModelAdapter());
+  print("UserModelAdapter registered");
   await Hive.openBox('userBox');
 
 //Firebase
@@ -119,7 +122,6 @@ class _MyAppState extends State<MyApp> {
   );
   @override
   Widget build(BuildContext context) {
-    print("user: $user");
     return MaterialApp.router(
       title: 'Flutter Demo',
       theme: ThemeData(

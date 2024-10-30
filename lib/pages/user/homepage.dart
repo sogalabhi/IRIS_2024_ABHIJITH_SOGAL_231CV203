@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/login.dart';
 import 'package:iris_app/pages/user/applyleave.dart';
+import 'package:iris_app/utils/check_internet.dart';
+import 'package:iris_app/utils/getuserbyuid.dart';
+import 'package:iris_app/utils/getuserfromhive.dart';
 import 'package:lottie/lottie.dart';
 
 import 'hostelchange.dart';
@@ -18,21 +21,13 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  String name = "";
-  String email = "";
-  String rollNumber = "";
-  String hostel = ""; // Empty or null if no hostel registration yet
   Map<dynamic, dynamic>? userData;
+  UserModel? userDatafromhive;
+  bool isConnected = false;
   @override
   void dispose() {
     Hive.close();
     super.dispose();
-  }
-
-  @override
-  void initState() {
-    getData();
-    super.initState();
   }
 
   void getData() async {
@@ -40,7 +35,6 @@ class _HomePageState extends State<HomePage> {
     try {
       DocumentSnapshot documentSnapshot =
           await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
       if (documentSnapshot.exists) {
         setState(() {
           userData = documentSnapshot.data() as Map<String, dynamic>;
@@ -51,30 +45,33 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       print("Error fetching user data: $e");
     }
-  }
-
-  void loadUserData() async {
     var userBox = Hive.box('userBox');
     UserModel? user = await userBox.get('user');
     if (user != null) {
-      // Display or use user information
-      print(user.name);
-    }
+      setState(() {
+        userDatafromhive = user;
+      });
+    } else {}
   }
 
   void _signout() async {
-    await FirebaseAuth.instance.signOut();Navigator.push(context, MaterialPageRoute(builder: (context)=>const LoginPage()));
+    await FirebaseAuth.instance.signOut();
+    Navigator.push(
+        context, MaterialPageRoute(builder: (context) => const LoginPage()));
   }
 
   @override
   Widget build(BuildContext context) {
     getData();
     if (userData == null) {
-      return Scaffold(
-          body: Center(
-        child: Lottie.asset('assets/lottie/loadinglottie.json'),
-      )); // Show loading indicator while fetching data
+      if (isConnected) {
+        return Scaffold(
+            body: Center(
+          child: Lottie.asset('assets/lottie/loadinglottie.json'),
+        )); // Show loading indicator while fetching data
+      }
     }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -92,31 +89,42 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 20),
+
               // Name
-              _buildInfoTile("Name", userData?['name']),
+              _buildInfoTile(
+                  "Name", userData?['name'] ?? userDatafromhive?.name),
               const SizedBox(height: 10),
 
               // Email
-              _buildInfoTile("Email", userData?['email']),
+              _buildInfoTile(
+                  "Email", userData?['email'] ?? userDatafromhive?.email),
               const SizedBox(height: 10),
 
               // Roll Number
-              _buildInfoTile("Roll Number", userData?['rollNumber']),
+              _buildInfoTile("Roll Number",
+                  userData?['rollNumber'] ?? userDatafromhive?.rollNumber),
               const SizedBox(height: 10),
 
               // Hostel Info
               if (userData?['currentHostel']['hostelName'].isNotEmpty)
                 _buildInfoTile(
-                    "Hostel", userData?['currentHostel']['hostelName']),
+                    "Hostel",
+                    userData?['currentHostel']['hostelName'] ??
+                        userDatafromhive?.currentHostel?['hostelName']),
 
               const SizedBox(height: 10),
               if (userData?['currentHostel']['wingName'].isNotEmpty)
-                _buildInfoTile("Wing", userData?['currentHostel']['wingName']),
+                _buildInfoTile(
+                    "Wing",
+                    userData?['currentHostel']['wingName'] ??
+                        userDatafromhive?.currentHostel?['wingName']),
 
               const SizedBox(height: 10),
               if (userData?['currentHostel']['floorNumber'].isNotEmpty)
                 _buildInfoTile(
-                    "Floor", userData?['currentHostel']['floorNumber']),
+                    "Floor",
+                    userData?['currentHostel']['floorNumber'] ??
+                        userDatafromhive?.currentHostel?['floorNumber']),
 
               if (userData?['currentHostel']['hostelName'].isEmpty)
                 const Padding(
@@ -137,7 +145,11 @@ class _HomePageState extends State<HomePage> {
                   onPressed: () async {
                     if (userData?['currentHostel']['hostelName'].isEmpty) {
                       // Navigate to the registration page
-                      Navigator.push(context, MaterialPageRoute(builder: (context)=>const HostelRegistrationPage()));
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const HostelRegistrationPage()));
                     } else {
                       await Navigator.push(
                         context,
@@ -186,7 +198,10 @@ class _HomePageState extends State<HomePage> {
                 ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>const LeaveApplicationForm()));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LeaveApplicationForm()));
                 },
                 child: const Text('Apply for leave'),
               ),
