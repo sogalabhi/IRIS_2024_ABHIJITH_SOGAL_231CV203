@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/admin/dashboard.dart';
@@ -86,17 +87,9 @@ class _LoginPageState extends State<LoginPage> {
           print('user $user');
           loadUserData(user);
           if (_emailController.text.trim() == "admin@gmail.com") {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const AdminDashboardPage()));
-            });
+            GoRouter.of(context).pushReplacement('/admindashboard');
           } else {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.pushReplacement(
-                  context, MaterialPageRoute(builder: (_) => const HomePage()));
-            });
+            GoRouter.of(context).pushReplacement('/');
           }
 
           // Clear the fields

@@ -67,7 +67,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
         // Show a success message or navigate to another page
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$uid Registered successfully!')),
+          const SnackBar(content: Text('Registered successfully!')),
         );
         void saveUserData(UserModel user) async {
           var userBox = Hive.box('userBox');
@@ -94,7 +94,7 @@ class _RegisterPageState extends State<RegisterPage> {
         _emailController.clear();
         _passwordController.clear();
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (context) => const HomePage()));
+            context, MaterialPageRoute(builder: (context) => const LoginPage()));
       } catch (e) {
         // Handle registration error
         ScaffoldMessenger.of(context).showSnackBar(

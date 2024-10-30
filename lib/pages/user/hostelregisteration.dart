@@ -176,6 +176,12 @@ class _HostelRegistrationPageState extends State<HostelRegistrationPage> {
             const SizedBox(
               height: 10,
             ),
+            if (selectedWing != null)
+              Text(
+                  'Vacancies: ${hostels[selectedHostel]!['floors'][selectedFloor]['wings'][selectedWing]['vacancies']}'),
+            const SizedBox(
+              height: 10,
+            ),
             ElevatedButton(
               onPressed: selectedHostel != null && selectedWing != null
                   ? () {

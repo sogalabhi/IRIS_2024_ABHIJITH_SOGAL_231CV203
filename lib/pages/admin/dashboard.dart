@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive/hive.dart';
 import 'package:iris_app/models/user_model.dart';
 import 'package:iris_app/pages/admin/hostelchangerequests.dart';
@@ -42,15 +43,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     getDocumentCount();
-    
+
     void signout() async {
       await FirebaseAuth.instance.signOut();
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const LoginPage()));
+      GoRouter.of(context).pushReplacement('/login');
     }
 
     return Scaffold(
@@ -184,7 +183,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) =>
-                                    const LeaveApplicationsList()));
+                                    const HostelChangeRequestsPage()));
                       }),
                       const SizedBox(width: 10),
                       buildQuickLinkButton("Manage Users", Icons.assignment,
