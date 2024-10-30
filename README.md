@@ -95,5 +95,8 @@ The application uses **Hive** for offline data storage, allowing users to access
 - **Admins** can manage hostels, approve/reject change requests, and handle user allocations.
 
 ## 🧪 Download and install the apk to test
-Link: 
+Link: https://github.com/sogalabhi/IRIS_2024_ABHIJITH_SOGAL_231CV203/releases/download/apk/app-release.apk
+
+Explaination = https://youtu.be/8Je0FNbKbFg
+
 admin login: admin@gmail.com|abhijith
