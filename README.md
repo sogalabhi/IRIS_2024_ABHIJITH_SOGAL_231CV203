@@ -100,3 +100,14 @@ Link: https://github.com/sogalabhi/IRIS_2024_ABHIJITH_SOGAL_231CV203/releases/do
 Explaination = https://youtu.be/8Je0FNbKbFg
 
 admin login: admin@gmail.com|abhijith
+
+Database structure
+![image](https://github.com/user-attachments/assets/60b2b422-2297-4f4c-a783-859a4a29fb57)
+![image](https://github.com/user-attachments/assets/33ac2709-bbf8-4e6d-98e3-16178976a7fe)
+![image](https://github.com/user-attachments/assets/aef86fb3-0c4f-4d43-8092-f181ae26520c)
+![image](https://github.com/user-attachments/assets/2d91ab72-3c0a-467c-b514-97ede323f31a)
+
+
+
+
+
