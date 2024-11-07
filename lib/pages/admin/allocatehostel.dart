@@ -76,14 +76,12 @@ class _HostelAllocationPageState extends State<HostelAllocationPage> {
     }
     var user = await getUserDetails(userId);
     String fcmToken = await getTokenByEmail(user?['email']);
-    if (fcmToken != null) {
-//Send notification
-      await sendNotificationV1(
-        title: "Update on hostel status",
-        body: "Admin has updated your hostel details. Click to check",
-        deviceToken: fcmToken,
-      );
-    }
+//Send notification to user
+    await sendNotificationV1(
+      title: "Update on hostel status",
+      body: "Admin has updated your hostel details. Click to check",
+      deviceToken: fcmToken,
+    );
   }
 
   @override

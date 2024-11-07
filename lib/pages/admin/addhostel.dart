@@ -19,8 +19,6 @@ class _CreateHostelPageState extends State<CreateHostelPage> {
     CollectionReference hostelDoc =
         _firestore.collection('hostels');
         hostelDoc.add(hostelData);
-
-    print(hostelData);
   }
 
   Future<void> updateHostel(

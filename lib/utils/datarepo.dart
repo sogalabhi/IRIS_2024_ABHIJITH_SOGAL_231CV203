@@ -5,6 +5,4 @@ import 'package:hive/hive.dart';
 class DataRepository {
   final Connectivity _connectivity = Connectivity();
   late StreamSubscription _connectivitySubscription;
-
-  
 }
